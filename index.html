@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            height: 100%;
+        }
+
+        .left {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .flags {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .flags img {
+            width: 32px;
+            height: 22px;
+            margin-right: 10px;
+        }
+
+        .text {
+            font-size: 1.5rem;
+            line-height: 1.8;
+            color: #000;
+        }
+
+        .text small {
+            display: block;
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #555;
+        }
+
+        .right {
+            flex: 1;
+            background-color: #f7d4db;
+            height: 100%;
+            clip-path: polygon(30% 0%, 100% 0%, 100% 100%, 0% 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .right img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left">
+            <div class="flags">
+                <img src="https://flagcdn.com/w320/br.png" alt="Brazil Flag">
+                <select>
+                    <option>Brazil</option>
+                </select>
+            </div>
+            <div class="text">
+                <p>Nosso novo website está a caminho</p>
+                <small>aaaaaaa, bbbbbbbbbbbbbb<br>aaaaaaa, bbbbbbbbbbbbbb.<br>Aguarde!</small>
+            </div>
+        </div>
+        <div class="right">
+            <img src="/mnt/data/site%20g.jpg" alt="Coming Soon Illustration">
+        </div>
+    </div>
+</body>
+</html>
