@@ -31,9 +31,11 @@
         }
 
         .flags {
+            position: absolute;
+            top: 20px;
+            left: 20px;
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
         }
 
         .flags img {
@@ -46,6 +48,7 @@
             font-size: 1.5rem;
             line-height: 1.8;
             color: #000;
+            margin-top: 50px;
         }
 
         .text small {
@@ -73,13 +76,13 @@
 </head>
 <body>
     <div class="container">
+        <div class="flags">
+            <img src="https://flagcdn.com/w320/br.png" alt="Brazil Flag">
+            <select>
+                <option>Brazil</option>
+            </select>
+        </div>
         <div class="left">
-            <div class="flags">
-                <img src="https://flagcdn.com/w320/br.png" alt="Brazil Flag">
-                <select>
-                    <option>Brazil</option>
-                </select>
-            </div>
             <div class="text">
                 <p>Nosso novo website está a caminho</p>
                 <small>aaaaaaa, bbbbbbbbbbbbbb<br>aaaaaaa, bbbbbbbbbbbbbb.<br>Aguarde!</small>
