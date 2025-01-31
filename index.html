@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Safe Email Display</title>
+    <title>Reveal Email</title>
     <script>
         function revealEmail() {
-            // Email is obfuscated in parts
+            // Obfuscated email parts
             let user = "a.abbas321";
             let domain = "gmail";
             let tld = "com";
@@ -19,8 +19,9 @@
         }
     </script>
 </head>
-<body onload="revealEmail()">
+<body>
     <h2>Contact Me</h2>
-    <p>Email: <span id="email">Loading...</span></p>
+    <p>Email: <span id="email">********</span></p>
+    <button onclick="revealEmail()">Show Email</button>
 </body>
 </html>
