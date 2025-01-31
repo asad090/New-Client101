@@ -3,57 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PINK 32 - VIP Posts</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <header class="bg-pink text-white text-center py-4">
-        <h1 class="display-4">PINK 32</h1>
-        <p class="lead">Invite Only - VIP Posts in Exclusive Categories</p>
-    </header>
-    <main class="container my-5">
-        <p class="text-center">Welcome to PINK 32, your exclusive platform for influencers, brands, collaborations, giveaways, and shopping. Request an invite to join the community and make your mark!</p>
-        <div class="row text-center mt-4">
-            <div class="col-md-2 col-sm-4 mb-3">
-                <div class="btn btn-pink text-white fw-bold">Giveaways</div>
-            </div>
-            <div class="col-md-2 col-sm-4 mb-3">
-                <div class="btn btn-pink text-white fw-bold">Social Media Links</div>
-            </div>
-            <div class="col-md-2 col-sm-4 mb-3">
-                <div class="btn btn-pink text-white fw-bold">Product Promotions</div>
-            </div>
-            <div class="col-md-2 col-sm-4 mb-3">
-                <div class="btn btn-pink text-white fw-bold">Shopping</div>
-            </div>
-            <div class="col-md-2 col-sm-4 mb-3">
-                <div class="btn btn-pink text-white fw-bold">Influencer Collaborations</div>
-            </div>
-        </div>
-        <div class="text-center mt-4">
-            <button class="btn btn-primary px-4 py-2" onclick="document.getElementById('invite-form').scrollIntoView();">Request an Invite</button>
-        </div>
-        <form id="invite-form" class="mt-5">
-            <h2 class="text-center">Request an Invite</h2>
-            <div class="mb-3">
-                <label for="name" class="form-label">Name:</label>
-                <input type="text" id="name" name="name" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label for="email" class="form-label">Email:</label>
-                <input type="email" id="email" name="email" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label for="message" class="form-label">Why do you want to join?</label>
-                <textarea id="message" name="message" rows="4" class="form-control" required></textarea>
-            </div>
-            <button type="submit" class="btn btn-success w-100">Submit</button>
-        </form>
-    </main>
-    <footer class="bg-dark text-white text-center py-3">
-        <p class="mb-0">&copy; 2025 PINK 32. All Rights Reserved.</p>
-    </footer>
+    <title>Safe Email Display</title>
+    <script>
+        function revealEmail() {
+            // Email is obfuscated in parts
+            let user = "a.abbas321";
+            let domain = "gmail";
+            let tld = "com";
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+            // Construct email dynamically
+            let email = user + "@" + domain + "." + tld;
+
+            // Display the email
+            document.getElementById("email").innerHTML = `<a href="mailto:${email}">${email}</a>`;
+        }
+    </script>
+</head>
+<body onload="revealEmail()">
+    <h2>Contact Me</h2>
+    <p>Email: <span id="email">Loading...</span></p>
 </body>
 </html>
