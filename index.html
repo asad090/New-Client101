@@ -1,1 +1,43 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reveal Contact Info</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        .hidden {
+            display: none;
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <button onclick="revealInfo()">Click to Reveal Contact Info</button>
+    
+    <div id="contact-info" class="hidden">
+        📞 Phone: +923005287409 <br>
+        📧 Email: a.abbas321@gmail.com
+    </div>
+
+    <script>
+        function revealInfo() {
+            document.getElementById("contact-info").style.display = "block";
+        }
+    </script>
+
+</body>
+</html>
