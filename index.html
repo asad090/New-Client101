@@ -90,6 +90,7 @@
                 <button id="profile-btn" class="py-2 px-3 hover:text-indigo-600 transition duration-150" onclick="checkContextAndShowView('profile')">Student Profile & History</button>
                 <button id="verification-btn" class="py-2 px-3 hover:text-indigo-600 transition duration-150" onclick="checkContextAndShowView('verification')">Credential Verification</button>
                 <button id="financial-btn" class="py-2 px-3 hover:text-indigo-600 transition duration-150" onclick="checkContextAndShowView('financial')">Financial Agreement</button>
+                <button id="reporting-btn" class="py-2 px-3 hover:text-indigo-600 transition duration-150" onclick="showView('reporting')">Reporting & Compliance</button>
             </nav>
         </header>
 
@@ -98,6 +99,10 @@
         <!-- 1. ENROLLMENT PIPELINE VIEW (Kanban - Based on Sales.jpg) -->
         <div id="pipeline-view" class="view-content hidden">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">Sales & Enrollment Pipeline</h2>
+            <div id="active-student-bar" class="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg hidden">
+                <span class="font-semibold text-sm text-yellow-800">ACTIVE CASE:</span> <span id="active-student-name-display" class="font-bold text-yellow-900"></span>
+                <button onclick="clearActiveStudentContext()" class="float-right text-xs text-red-500 hover:text-red-700 underline">Clear Context</button>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <div class="bg-indigo-100 p-4 rounded-lg">Total Leads: <span class="font-bold text-2xl">450</span></div>
                 <div class="bg-yellow-100 p-4 rounded-lg">New Leads (Today): <span class="font-bold text-2xl">12</span></div>
@@ -150,6 +155,8 @@
                         <nav id="profile-nav" class="space-y-2">
                             <button class="profile-nav-btn block w-full text-left p-2 rounded-md hover:bg-gray-100" data-view="profile" onclick="showProfileSubView('profile')">Student Profile</button>
                             <button class="profile-nav-btn block w-full text-left p-2 rounded-md hover:bg-gray-100" data-view="financial" onclick="showProfileSubView('financial')">Financial & Compliance</button>
+                            <!-- This tab is conditionally rendered based on enrollmentStatus -->
+                            <button id="academics-btn" class="profile-nav-btn block w-full text-left p-2 rounded-md hover:bg-gray-100 hidden" data-view="academics" onclick="showProfileSubView('academics')">Reporting & Academics</button>
                             <button class="profile-nav-btn block w-full text-left p-2 rounded-md hover:bg-gray-100" data-view="history" onclick="showProfileSubView('history')">Program History</button>
                         </nav>
                     </div>
@@ -194,6 +201,29 @@
                                 <a href="#" onclick="showView('financial'); return false;" class="mt-2 inline-block text-indigo-600 hover:text-indigo-800 text-sm font-semibold">→ View Full Financial Agreement & COE Schedule</a>
                             </div>
                         </div>
+                        
+                        <!-- Reporting & Academics Sub-view (NEW - Conditional) -->
+                         <div id="profile-subview-academics" class="profile-subview hidden">
+                            <h3 class="text-xl font-semibold mb-4 border-b pb-2">Academic & Reporting Functions</h3>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <button class="p-4 bg-blue-100 rounded-lg hover:bg-blue-200 transition text-left font-bold text-blue-800">
+                                    Generate Official Transcript (PDF)
+                                    <p class="text-sm font-normal text-gray-700 mt-1">Includes all course grades and completion status.</p>
+                                </button>
+                                <button class="p-4 bg-purple-100 rounded-lg hover:bg-purple-200 transition text-left font-bold text-purple-800">
+                                    Generate T2202 (Tax Form)
+                                    <p class="text-sm font-normal text-gray-700 mt-1">Taxes: Total tuition fees for registered semesters.</p>
+                                </button>
+                                <div class="col-span-2 p-4 bg-gray-100 rounded-lg">
+                                    <h4 class="font-bold text-gray-800 mb-2">LMS Access & Progress</h4>
+                                    <p class="text-sm"><span class="font-semibold">LMS Status:</span> Active (Last Login: 2025-11-20)</p>
+                                    <p class="text-sm"><span class="font-semibold">Academic KPI:</span> 85% Completion Rate</p>
+                                    <button class="mt-2 text-indigo-600 text-sm hover:text-indigo-800">Reset LMS Password</button>
+                                </div>
+                            </div>
+                         </div>
+
 
                         <!-- Program History Sub-view -->
                         <div id="profile-subview-history" class="profile-subview hidden">
@@ -651,6 +681,49 @@
                 
             </form>
         </div>
+        
+        <!-- 5. REPORTING & COMPLIANCE VIEW (Bulk Actions - NEW MAIN TAB) -->
+        <div id="reporting-view" class="view-content hidden">
+             <div class="bg-white p-6 rounded-xl crm-card">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">Bulk Reporting & Compliance Center</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <button onclick="alert('Simulating bulk T2202 generation.')" class="p-4 bg-purple-100 rounded-lg shadow-md hover:bg-purple-200 transition text-left font-bold text-purple-800">
+                        Generate Bulk T2202s
+                        <p class="text-sm font-normal text-gray-700 mt-1">Generate tax forms for all eligible enrolled students.</p>
+                    </button>
+                    <button onclick="alert('Simulating KPI report export.')" class="p-4 bg-blue-100 rounded-lg shadow-md hover:bg-blue-200 transition text-left font-bold text-blue-800">
+                        Academic KPI Report
+                        <p class="text-sm font-normal text-gray-700 mt-1">Export completion rates and grade averages.</p>
+                    </button>
+                    <button onclick="alert('Simulating commission payout list.')" class="p-4 bg-green-100 rounded-lg shadow-md hover:bg-green-200 transition text-left font-bold text-green-800">
+                        Commission Payout List
+                        <p class="text-sm font-normal text-gray-700 mt-1">List all agents with commissions due (Deposit Rec. status).</p>
+                    </button>
+                </div>
+                
+                <h3 class="text-xl font-semibold mb-4 border-b pb-2">Student Roster for Reporting (All Leads/Enrolled)</h3>
+
+                <!-- Roster table will be populated by JS -->
+                <div class="overflow-x-auto rounded-lg border border-gray-300">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Student Name</th>
+                                <th class="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Program / Branch</th>
+                                <th class="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Enrollment Status</th>
+                                <th class="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Last Action</th>
+                                <th class="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reporting-roster-body" class="bg-white divide-y divide-gray-200 text-sm">
+                            <!-- Data populated by JS in renderReportingRoster() -->
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
 
     </div>
     
@@ -789,7 +862,7 @@
             program: "Medical Esthetics (EPQ)",
             startDate: "2025-09-01",
             campus: "Toronto Downtown",
-            status: "ENROLLED (FT)",
+            enrollmentStatus: "Lead", // Added enrollment status
             legalName: "Anya K. Sharma",
             branch: "Main Campus",
             address: "123 Main St, Toronto, ON M1M 1M1"
@@ -797,12 +870,12 @@
         
         // Initial dummy leads for the Kanban pipeline
         const INITIAL_LEADS = [
-            { id: 'student_1', name: "Anya Sharma", program: "Medical Esthetics", status: "New Inquiries", agent: "No Agent", source: "Website Inquiry", date: "2025-10-20", email: "anya.sharma@example.com", phone: "(416) 555-0192", branch: "Main Campus", address: "123 Main St" },
-            { id: 'student_2', name: "Carlos Ruiz", program: "Dental Assistant", status: "New Inquiries", agent: "Agent X", source: "Referral", date: "2025-10-21", email: "carlos@example.com", phone: "(416) 555-0193", branch: "North Branch", address: "456 Oak Ave" },
-            { id: 'student_3', name: "Ben Carter", program: "HR Specialist", status: "Contacted & Interested", agent: "Agent Y", source: "Marketing Campaign", date: "2025-10-22", email: "ben@example.com", phone: "(416) 555-0194", branch: "Main Campus", address: "789 Pine Ln" },
-            { id: 'student_4', name: "Omar Khan", program: "Documents Pending", status: "Application Started", agent: "Agent X", source: "Website Inquiry", date: "2025-10-23", email: "omar@example.com", phone: "(416) 555-0195", branch: "West Branch", address: "101 Elm Blvd" },
-            { id: 'student_5', name: "Sophia Chen", program: "Deposit Received", status: "Application Started", agent: "No Agent", source: "Admin Entry", date: "2025-10-24", email: "sophia@example.com", phone: "(416) 555-0196", branch: "Main Campus", address: "202 Cedar Pkwy" },
-            { id: 'student_6', name: "Liam Johnson", program: "ME - Sept-2025", status: "Enrolled Students", agent: "Agent Z", source: "Referral", date: "2025-10-25", email: "liam@example.com", phone: "(416) 555-0197", branch: "North Branch", address: "303 Birch Dr" },
+            { id: 'student_1', name: "Anya Sharma", program: "Medical Esthetics", status: "New Inquiries", enrollmentStatus: "Lead", agent: "No Agent", source: "Website Inquiry", date: "2025-10-20", email: "anya.sharma@example.com", phone: "(416) 555-0192", branch: "Main Campus", address: "123 Main St" },
+            { id: 'student_2', name: "Carlos Ruiz", program: "Dental Assistant", status: "New Inquiries", enrollmentStatus: "Lead", agent: "Agent X", source: "Referral", date: "2025-10-21", email: "carlos@example.com", phone: "(416) 555-0193", branch: "North Branch", address: "456 Oak Ave" },
+            { id: 'student_3', name: "Ben Carter", program: "HR Specialist", status: "Contacted & Interested", enrollmentStatus: "Lead", agent: "Agent Y", source: "Marketing Campaign", date: "2025-10-22", email: "ben@example.com", phone: "(416) 555-0194", branch: "Main Campus", address: "789 Pine Ln" },
+            { id: 'student_4', name: "Omar Khan", program: "Documents Pending", status: "Application Started", enrollmentStatus: "Active", agent: "Agent X", source: "Website Inquiry", date: "2025-10-23", email: "omar@example.com", phone: "(416) 555-0195", branch: "West Branch", address: "101 Elm Blvd" },
+            { id: 'student_5', name: "Sophia Chen", program: "Deposit Received", status: "Application Started", enrollmentStatus: "Active", agent: "No Agent", source: "Admin Entry", date: "2025-10-24", email: "sophia@example.com", phone: "(416) 555-0196", branch: "Main Campus", address: "202 Cedar Pkwy" },
+            { id: 'student_6', name: "Liam Johnson", program: "ME - Sept-2025", status: "Enrolled Students", enrollmentStatus: "Enrolled", agent: "Agent Z", source: "Referral", date: "2025-10-25", email: "liam@example.com", phone: "(416) 555-0197", branch: "North Branch", address: "303 Birch Dr" },
         ];
 
 
@@ -823,6 +896,12 @@
         // Fetches the ID of the student currently selected in the CRM context
         function getActiveStudentId() {
             return localStorage.getItem(CURRENT_STUDENT_ID_KEY) || null;
+        }
+        
+        // Clears the Active Student Context (used when returning to pipeline)
+        window.clearActiveStudentContext = function() {
+            localStorage.removeItem(CURRENT_STUDENT_ID_KEY);
+            showView('pipeline');
         }
         
         // Checks if a student is active. If not, redirects to pipeline.
@@ -883,13 +962,27 @@
             if (activeView) {
                 activeView.classList.remove('hidden');
             }
-            if (activeButton && viewId === 'pipeline') {
+            if (activeButton && (viewId === 'pipeline' || viewId === 'reporting')) {
                 activeButton.classList.add('tab-active');
             } else if (activeButton && viewId !== 'context-warning') {
-                // For contextual tabs, use the context-active style
+                // For contextual tabs (Profile, Verification, Financial)
                 activeButton.classList.add('tab-context-active');
             }
             
+            // Show/Hide Active Student Bar based on view
+            const activeStudentBar = document.getElementById('active-student-bar');
+            const studentId = getActiveStudentId();
+
+            if (studentId && viewId !== 'pipeline' && viewId !== 'reporting' && viewId !== 'context-warning') {
+                const storedData = localStorage.getItem(`student_${studentId}`);
+                const data = storedData ? JSON.parse(storedData) : {};
+                document.getElementById('active-student-name-display').textContent = data.verificationDetails?.fullName || 'N/A';
+                activeStudentBar.classList.remove('hidden');
+            } else {
+                activeStudentBar.classList.add('hidden');
+            }
+
+
             // Trigger data/view specific renders
             if (viewId === 'financial') {
                 window.loadFinancialData();
@@ -901,6 +994,8 @@
             } else if (viewId === 'verification') {
                 window.loadVerificationData();
                 showVerificationSubView('details'); 
+            } else if (viewId === 'reporting') {
+                renderReportingRoster();
             }
         }
         
@@ -937,9 +1032,21 @@
                 balance = 0;
             }
             
+            // --- Determine Enrollment Status ---
+            const currentEnrollmentStatus = data.enrollmentStatus || 'Lead';
+            const isEnrolledOrGraduated = ['Enrolled', 'Graduated'].includes(currentEnrollmentStatus);
+            
+            // --- Conditional Visibility for Academics Tab ---
+            const academicsBtn = document.getElementById('academics-btn');
+            if (isEnrolledOrGraduated) {
+                academicsBtn.classList.remove('hidden');
+            } else {
+                academicsBtn.classList.add('hidden');
+            }
+            
             // --- Populate Header Bar ---
             document.getElementById('profile-name').textContent = data.verificationDetails?.fullName || 'N/A';
-            document.getElementById('profile-status').textContent = data.verificationDetails?.status || 'Active Lead'; 
+            document.getElementById('profile-status').textContent = currentEnrollmentStatus.toUpperCase(); 
             document.getElementById('profile-balance').textContent = `BALANCE DUE: $${Math.max(0, balance).toFixed(2)}`;
             
             // --- Populate Student Profile sub-view ---
@@ -1098,6 +1205,64 @@
         }
 
 
+        // --- REPORTING ROSTER VIEW ---
+        
+        function renderReportingRoster() {
+            const leads = getLeads();
+            const rosterBody = document.getElementById('reporting-roster-body');
+            rosterBody.innerHTML = '';
+            
+            // We load the full student record for each lead to get the current enrollment status
+            const allStudents = leads.map(lead => {
+                const studentData = localStorage.getItem(`student_${lead.id}`);
+                const fullRecord = studentData ? JSON.parse(studentData) : initializeStudentSpecificRecord(lead, true);
+                
+                return {
+                    name: fullRecord.verificationDetails.fullName,
+                    program: fullRecord.verificationDetails.program,
+                    branch: fullRecord.verificationDetails.branch,
+                    enrollmentStatus: fullRecord.enrollmentStatus,
+                    id: fullRecord.studentId,
+                    lastAction: fullRecord.verificationDetails.fullNameVerifiedBy ? fullRecord.verificationDetails.fullNameVerifiedBy.split(' on ')[1] : lead.date,
+                };
+            });
+
+            if (allStudents.length === 0) {
+                 rosterBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">No student records found.</td></tr>`;
+                 return;
+            }
+            
+            const statusColorMap = {
+                'Enrolled': 'bg-green-100 text-green-800',
+                'Graduated': 'bg-indigo-100 text-indigo-800',
+                'Active': 'bg-yellow-100 text-yellow-800',
+                'Lead': 'bg-gray-100 text-gray-800'
+            };
+
+            allStudents.forEach(student => {
+                const statusClass = statusColorMap[student.enrollmentStatus] || 'bg-red-100 text-red-800';
+                
+                const row = `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-3 py-2 font-medium text-gray-900">${student.name}</td>
+                        <td class="px-3 py-2">${student.program} / ${student.branch}</td>
+                        <td class="px-3 py-2">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                ${student.enrollmentStatus.toUpperCase()}
+                            </span>
+                        </td>
+                        <td class="px-3 py-2 text-gray-600">${student.lastAction}</td>
+                        <td class="px-3 py-2 space-x-2">
+                            <button onclick="setActiveStudent('${student.id}')" class="text-indigo-600 hover:text-indigo-800 text-sm">View Profile</button>
+                            <button onclick="alert('Simulating bulk T2202 generation for ${student.name}')" class="text-purple-600 hover:text-purple-800 text-sm" ${student.enrollmentStatus !== 'Enrolled' && student.enrollmentStatus !== 'Graduated' ? 'disabled' : ''}>T2202</button>
+                        </td>
+                    </tr>
+                `;
+                rosterBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+
         // --- CORE LOGIC: CALCULATIONS (Unchanged) ---
 
         function calculateTotal() {
@@ -1240,8 +1405,11 @@
             data.contractSigned = true; 
             data.eSignatureName = document.getElementById('eSignatureName').value;
             data.dateSigned = document.getElementById('dateSigned').value;
+            
+            // NOTE: enrollmentStatus is managed manually for this presentation, but we save the existing value
+            // data.enrollmentStatus remains the same unless explicitly updated elsewhere
 
-            // 6. Collect Conditional Funding Data (unchanged)
+            // 7. Collect Conditional Funding Data (unchanged)
             if (fundingStatus === 'OSAP') {
                 const osapDisbursementRows = document.querySelectorAll('#osap-disbursement-table tr');
                 const disbursements = Array.from(osapDisbursementRows).map(row => ({
@@ -1282,7 +1450,7 @@
                 delete data.bjoDetails;
             }
             
-            // 7. Save to localStorage
+            // 8. Save to localStorage
             try {
                 localStorage.setItem(`student_${studentId}`, JSON.stringify(data));
                 showMessage("Success! All Data Saved to Browser Storage.", false);
@@ -1427,6 +1595,7 @@
 
             const data = {
                  studentId: lead ? lead.id : DEFAULT_STUDENT_ID,
+                 enrollmentStatus: lead ? (lead.enrollmentStatus || 'Lead') : 'Lead', // Use lead status if available
                  verificationDetails: {
                     fullName: profile.name || profile.fullName,
                     fullNameVerifiedBy: initialLog,
@@ -1529,6 +1698,7 @@
                 name: name,
                 program: program,
                 status: "New Inquiries", // Default Kanban status
+                enrollmentStatus: "Lead", // Default enrollment status
                 agent: agent,
                 source: source,
                 date: new Date().toISOString().substring(0, 10),
@@ -1541,9 +1711,15 @@
             const storedLeads = localStorage.getItem(LEADS_STORAGE_KEY);
             let leads = storedLeads ? JSON.parse(storedLeads) : [];
 
-            leads.push(newLead);
-            localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(leads));
-            
+            // Prevent duplicate creation if somehow triggered multiple times fast
+            if (!leads.find(l => l.id === newLead.id)) {
+                leads.push(newLead);
+                localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(leads));
+                
+                // Also initialize the full student record structure in local storage
+                initializeStudentSpecificRecord(newLead, true);
+            }
+
             closeNewLeadModal();
             renderKanbanPipeline();
             showMessage(`New Lead: ${name} added to New Inquiries (Agent: ${agent}).`, false);
@@ -1556,7 +1732,30 @@
             }
             // Initialize with dummy data if nothing exists
             localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(INITIAL_LEADS));
+            
+            // Also initialize the full student records for the dummy leads
+            INITIAL_LEADS.forEach(lead => {
+                initializeStudentSpecificRecord(lead, true);
+            });
             return INITIAL_LEADS;
+        }
+        
+        // Function to check document verification status for Kanban badge
+        function getVerificationStatusBadge(studentId) {
+            const storedData = localStorage.getItem(`student_${studentId}`);
+            if (!storedData) return '';
+
+            const data = JSON.parse(storedData);
+            const docs = data.documentStatus || {};
+            
+            // Check only Photo ID and Transcript for a basic "ready" status for presentation
+            const requiredDocs = ['photoId', 'transcript'];
+            const allVerified = requiredDocs.every(doc => docs[doc] === 'Verified');
+
+            if (allVerified) {
+                return '<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-200 text-green-800 absolute top-2 right-2">Docs Verified</span>';
+            }
+            return '';
         }
         
         // New function to open the details modal
@@ -1603,14 +1802,17 @@
                 
                 let cardsHtml = '';
                 columnLeads.forEach(lead => {
+                    const verificationBadge = getVerificationStatusBadge(lead.id);
+
                     cardsHtml += `
-                        <div class="bg-white p-3 mb-3 rounded-lg border ${columnData.borderColor} shadow-sm">
+                        <div class="bg-white p-3 mb-3 rounded-lg border ${columnData.borderColor} shadow-sm relative">
+                            ${verificationBadge}
                             <p class="font-bold">${lead.name}</p>
                             <p class="text-xs text-gray-500">Program: ${lead.program}</p>
                             <p class="text-xs text-indigo-500 mt-1">Agent: ${lead.agent || 'N/A'}</p>
                             <div class="flex justify-between mt-2">
                                 <button onclick="openStudentDetailsModal('${lead.id}')" class="text-sm text-indigo-500 hover:text-indigo-700">☰ Details</button>
-                                <button onclick="setActiveStudent('${lead.id}')" class="text-xs bg-indigo-500 text-white px-2 py-1 rounded-md hover:bg-indigo-600">Start Enrollment</button>
+                                <button onclick="setActiveStudent('${lead.id}')" class="text-xs bg-indigo-600 text-white px-2 py-1 rounded-md hover:bg-indigo-700">Start Enrollment</button>
                             </div>
                         </div>
                     `;
@@ -1630,13 +1832,9 @@
         // --- INITIALIZATION ---
 
         document.addEventListener('DOMContentLoaded', () => {
-             // Ensure initial default record exists for first load
+            // Ensure initial dummy record exists for first load
             if (!localStorage.getItem(`student_${DEFAULT_STUDENT_ID}`)) {
                 initializeStudentSpecificRecord(null, false);
-            }
-            // If no student is set as active, set the default student for the first load
-            if (!localStorage.getItem(CURRENT_STUDENT_ID_KEY)) {
-                localStorage.setItem(CURRENT_STUDENT_ID_KEY, DEFAULT_STUDENT_ID);
             }
 
             // Set default view to Pipeline and render
