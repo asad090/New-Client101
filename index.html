@@ -52,7 +52,7 @@
             right: 20px;
             padding: 1rem 1.5rem;
             border-radius: 0.5rem;
-            z-index: 1000;
+            z-index: 10000; /* High Z-index for message box */
             opacity: 0;
             transition: opacity 0.5s, transform 0.5s;
             transform: translateY(20px);
@@ -68,9 +68,16 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 9999; /* High Z-index for modals */
             display: none;
+            overflow-y: auto; /* Allow scrolling for large content */
+        }
+        .case-file-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            min-height: 90vh;
+            padding: 20px;
         }
     </style>
 </head>
@@ -86,22 +93,22 @@
 
             <!-- TAB NAVIGATION -->
             <nav class="flex space-x-4 border-b border-gray-200">
-                <button id="pipeline-btn" class="py-2 px-3 hover:text-indigo-600 transition duration-150" onclick="showView('pipeline')">Enrollment Pipeline</button>
-                <button id="profile-btn" class="py-2 px-3 hover:text-indigo-600 transition duration-150" onclick="checkContextAndShowView('profile')">Student Profile & History</button>
-                <button id="verification-btn" class="py-2 px-3 hover:text-indigo-600 transition duration-150" onclick="checkContextAndShowView('verification')">Credential Verification</button>
-                <button id="financial-btn" class="py-2 px-3 hover:text-indigo-600 transition duration-150" onclick="checkContextAndShowView('financial')">Financial Agreement</button>
-                <button id="reporting-btn" class="py-2 px-3 hover:text-indigo-600 transition duration-150" onclick="showView('reporting')">Reporting & Compliance</button>
+                <button id="pipeline-btn" class="py-2 px-3 hover:text-indigo-600 transition duration-150" onclick="window.showView('pipeline')">Enrollment Pipeline</button>
+                
+                <!-- NOTE: Profile, Verification, Financial tabs REMOVED and consolidated into the modal -->
+
+                <button id="reporting-btn" class="py-2 px-3 hover:text-indigo-600 transition duration-150" onclick="window.showView('reporting')">Reporting & Compliance</button>
             </nav>
         </header>
 
         <!-- --- VIEW CONTAINERS --- -->
 
-        <!-- 1. ENROLLMENT PIPELINE VIEW (Kanban - Based on Sales.jpg) -->
+        <!-- 1. ENROLLMENT PIPELINE VIEW (Kanban - The main screen) -->
         <div id="pipeline-view" class="view-content hidden">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">Sales & Enrollment Pipeline</h2>
             <div id="active-student-bar" class="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg hidden">
                 <span class="font-semibold text-sm text-yellow-800">ACTIVE CASE:</span> <span id="active-student-name-display" class="font-bold text-yellow-900"></span>
-                <button onclick="clearActiveStudentContext()" class="float-right text-xs text-red-500 hover:text-red-700 underline">Clear Context</button>
+                <button onclick="window.clearActiveStudentContext()" class="float-right text-xs text-red-500 hover:text-red-700 underline">Clear Context</button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <div class="bg-indigo-100 p-4 rounded-lg">Total Leads: <span class="font-bold text-2xl">450</span></div>
@@ -112,7 +119,7 @@
             
             <!-- Quick Actions -->
             <div class="mb-6 flex space-x-3">
-                <button onclick="openNewLeadModal()" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700">
+                <button onclick="window.openNewLeadModal()" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700">
                     + Add New Lead
                 </button>
             </div>
@@ -122,587 +129,65 @@
             </div>
         </div>
         
-        <!-- --- CONTEXTUAL VIEWS (Student-Specific) --- -->
-
-        <!-- Contextual Warning Placeholder -->
-        <div id="context-warning-view" class="view-content hidden">
-            <div class="bg-white p-12 rounded-xl crm-card text-center mt-12">
-                <h2 class="text-3xl font-bold text-red-500 mb-4">No Active Student Selected</h2>
-                <p class="text-lg text-gray-700 mb-6">Please return to the **Enrollment Pipeline** tab and click <span class="font-bold text-indigo-600">"Start Enrollment"</span> on a lead card to load the student's profile and data forms.</p>
-                <button onclick="showView('pipeline')" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700">
-                    Go to Pipeline
-                </button>
-            </div>
-        </div>
-
-
-        <!-- 2. STUDENT PROFILE & HISTORY VIEW (Functional Sub-Tabs) -->
-        <div id="profile-view" class="view-content hidden">
-            <div class="bg-white p-6 rounded-xl crm-card mb-6">
-                <div class="flex justify-between items-center mb-4 pb-4 border-b border-gray-200">
-                    <h2 class="text-2xl font-extrabold text-gray-800">Student Profile: <span id="profile-name">Anya Sharma</span></h2>
-                    <div class="flex items-center space-x-4">
-                        <span id="profile-status" class="px-3 py-1 bg-green-500 text-white font-bold rounded-full text-sm">ENROLLED (FT)</span>
-                        <span id="profile-balance" class="px-3 py-1 bg-yellow-500 text-white font-bold rounded-full text-sm">BALANCE DUE: $1,500.00</span>
-                        <button class="text-indigo-600 hover:text-indigo-800">✉ Email</button>
-                        <button class="text-indigo-600 hover:text-indigo-800">📞 Call</button>
-                    </div>
-                </div>
-
-                <div class="flex space-x-8">
-                    <!-- Nav for Profile History (Functional Tabs) -->
-                    <div class="w-1/4">
-                        <nav id="profile-nav" class="space-y-2">
-                            <button class="profile-nav-btn block w-full text-left p-2 rounded-md hover:bg-gray-100" data-view="profile" onclick="showProfileSubView('profile')">Student Profile</button>
-                            <button class="profile-nav-btn block w-full text-left p-2 rounded-md hover:bg-gray-100" data-view="financial" onclick="showProfileSubView('financial')">Financial & Compliance</button>
-                            <!-- This tab is conditionally rendered based on enrollmentStatus -->
-                            <button id="academics-btn" class="profile-nav-btn block w-full text-left p-2 rounded-md hover:bg-gray-100 hidden" data-view="academics" onclick="showProfileSubView('academics')">Reporting & Academics</button>
-                            <button class="profile-nav-btn block w-full text-left p-2 rounded-md hover:bg-gray-100" data-view="history" onclick="showProfileSubView('history')">Program History</button>
-                        </nav>
-                    </div>
-                    
-                    <!-- Profile Sub-Content -->
-                    <div class="w-3/4">
-                        <!-- Student Profile Sub-view -->
-                        <div id="profile-subview-profile" class="profile-subview">
-                            <h3 class="text-xl font-semibold mb-4 border-b pb-2">Personal & Program Information</h3>
-                            <div class="grid grid-cols-2 gap-4 text-gray-700">
-                                <div><span class="font-semibold">Legal Name:</span> <span id="legal-name">N/A</span></div>
-                                <div><span class="font-semibold">Program:</span> <span id="program-name">N/A</span></div>
-                                <div><span class="font-semibold">Start Date:</span> <span id="start-date">N/A</span></div>
-                                <div><span class="font-semibold">Campus:</span> <span id="campus">N/A</span></div>
-                                <div><span class="font-semibold">Email:</span> <span id="profile-email">N/A</span></div>
-                                <div><span class="font-semibold">Phone:</span> <span id="profile-phone">N/A</span></div>
-                                <div class="col-span-2"><span class="font-semibold">Address:</span> <span id="profile-address">N/A</span></div>
-                            </div>
-                            
-                            <h3 class="text-xl font-semibold mt-8 mb-4 border-b pb-2">Agent & Commission Details</h3>
-                             <div class="grid grid-cols-2 gap-4 text-gray-700">
-                                <div><span class="font-semibold">Referring Agent:</span> <span id="agent-name-profile">N/A</span></div>
-                                <div><span class="font-semibold">Agent ID:</span> <span id="agent-id-profile">N/A</span></div>
-                                <div><span class="font-semibold">Commission Status:</span> <span id="commission-status-profile" class="font-bold text-yellow-600">N/A</span></div>
-                            </div>
-
-                        </div>
-
-                        <!-- Financial & Compliance Sub-view -->
-                        <div id="profile-subview-financial" class="profile-subview hidden">
-                            <h3 class="text-xl font-semibold mb-4 border-b pb-2">Financial Status Summary</h3>
-                            <div class="p-4 bg-indigo-50 rounded-lg mb-4">
-                                <p class="text-lg font-bold text-indigo-700">Total Program Fees: <span id="summary-total-fees">N/A</span></p>
-                                <p class="text-lg font-bold text-red-600">Current Balance Due: <span id="summary-balance-due">N/A</span></p>
-                            </div>
-                            
-                            <h4 class="text-lg font-semibold mt-6 mb-3">Primary Funding Details: <span id="summary-funding-status" class="text-indigo-500">N/A</span></h4>
-                            <div class="p-4 border border-gray-200 rounded-lg text-sm">
-                                <p><span class="font-medium">Initial Deposit Paid:</span> <span id="summary-deposit-paid">N/A</span></p>
-                                <p><span class="font-medium">Total Assessed Funding:</span> <span id="summary-assessed-funding">N/A</span></p>
-                                <p><span class="font-medium">Status Note:</span> <span id="summary-status-note">N/A</span></p>
-                                <a href="#" onclick="showView('financial'); return false;" class="mt-2 inline-block text-indigo-600 hover:text-indigo-800 text-sm font-semibold">→ View Full Financial Agreement & COE Schedule</a>
-                            </div>
-                        </div>
-                        
-                        <!-- Reporting & Academics Sub-view (NEW - Conditional) -->
-                         <div id="profile-subview-academics" class="profile-subview hidden">
-                            <h3 class="text-xl font-semibold mb-4 border-b pb-2">Academic & Reporting Functions</h3>
-                            
-                            <div class="grid grid-cols-2 gap-4">
-                                <button class="p-4 bg-blue-100 rounded-lg hover:bg-blue-200 transition text-left font-bold text-blue-800">
-                                    Generate Official Transcript (PDF)
-                                    <p class="text-sm font-normal text-gray-700 mt-1">Includes all course grades and completion status.</p>
-                                </button>
-                                <button class="p-4 bg-purple-100 rounded-lg hover:bg-purple-200 transition text-left font-bold text-purple-800">
-                                    Generate T2202 (Tax Form)
-                                    <p class="text-sm font-normal text-gray-700 mt-1">Taxes: Total tuition fees for registered semesters.</p>
-                                </button>
-                                <div class="col-span-2 p-4 bg-gray-100 rounded-lg">
-                                    <h4 class="font-bold text-gray-800 mb-2">LMS Access & Progress</h4>
-                                    <p class="text-sm"><span class="font-semibold">LMS Status:</span> Active (Last Login: 2025-11-20)</p>
-                                    <p class="text-sm"><span class="font-semibold">Academic KPI:</span> 85% Completion Rate</p>
-                                    <button class="mt-2 text-indigo-600 text-sm hover:text-indigo-800">Reset LMS Password</button>
-                                </div>
-                            </div>
-                         </div>
-
-
-                        <!-- Program History Sub-view -->
-                        <div id="profile-subview-history" class="profile-subview hidden">
-                             <h3 class="text-xl font-semibold mb-4 border-b pb-2">Program & Activity History Timeline</h3>
-                            <div class="relative pl-6">
-                                <!-- Vertical Line -->
-                                <div class="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-
-                                <!-- Timeline Items (Static Dummy Data) -->
-                                <div class="relative mb-8">
-                                    <div class="timeline-dot absolute left-0 top-0 -ml-2 bg-green-500">✓</div>
-                                    <div class="ml-6 p-4 border border-gray-200 rounded-lg">
-                                        <p class="font-bold text-gray-800">Program Enrollment</p>
-                                        <p class="text-sm text-gray-600">Enrolled in "Medical Esthetics (EPQ)". Start: 2025-09-01, Campus: Toronto.</p>
-                                        <p class="text-xs text-gray-400 mt-1">2025-08-20</p>
-                                    </div>
-                                </div>
-                                <div class="relative mb-8">
-                                    <div class="timeline-dot absolute left-0 top-0 -ml-2 bg-blue-500">$</div>
-                                    <div class="ml-6 p-4 border border-gray-200 rounded-lg">
-                                        <p class="font-bold text-gray-800">Funding Confirmed</p>
-                                        <p class="text-sm text-gray-600">OSAP Funding Status changed to "1st Loan Disbursed". Amount: $5,880.00.</p>
-                                        <p class="text-xs text-gray-400 mt-1">2025-09-10</p>
-                                    </div>
-                                </div>
-                                <div class="relative mb-8">
-                                    <div class="timeline-dot absolute left-0 top-0 -ml-2 bg-red-500">!</div>
-                                    <div class="ml-6 p-4 border border-gray-200 rounded-lg bg-red-50">
-                                        <p class="font-bold text-red-800">Initial Payment Overdue</p>
-                                        <p class="text-sm text-red-600">Initial $500 payment is 7 days overdue. Automatic Reminder Sent.</p>
-                                        <p class="text-xs text-gray-400 mt-1">2025-10-25</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 3. CREDENTIAL & DOCUMENT VERIFICATION VIEW (FUNCTIONAL) -->
-        <div id="verification-view" class="view-content hidden">
-             <div class="bg-white p-6 rounded-xl crm-card">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">Credential & Document Verification</h2>
-
-                <!-- Verification Sub-Tab Navigation -->
-                <div class="flex space-x-4 border-b border-gray-200 mb-6">
-                    <button class="verification-nav-btn py-2 px-3 hover:text-indigo-600 transition duration-150" data-verify-view="details" onclick="showVerificationSubView('details')">Step 1: Verify Details</button>
-                    <button class="verification-nav-btn py-2 px-3 hover:text-indigo-600 transition duration-150" data-verify-view="documents" onclick="showVerificationSubView('documents')">Step 2: Required Documents</button>
-                </div>
-
-                <!-- Step 1: Verify Details Sub-View -->
-                <div id="verification-subview-details" class="verification-subview section-box">
-                    <h3 class="text-xl font-semibold mb-4 border-b pb-2">1. Personal & Program Details</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="p-4 border border-gray-200 rounded-lg bg-white">
-                            <p class="text-sm font-semibold text-gray-700 mb-2">Student Identity</p>
-                            <label for="studentName" class="block text-sm font-medium text-gray-700">Full Name</label>
-                            <input type="text" id="studentName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base font-bold" value="Anya Sharma">
-                            <p class="text-xs text-gray-500 mt-1" id="studentName-status"></p>
-                            
-                            <label for="studentEmail" class="block text-sm font-medium text-gray-700 mt-3">Email</label>
-                            <input type="email" id="studentEmail" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base" value="anya.sharma@example.com">
-                            <p class="text-xs text-gray-500 mt-1" id="studentEmail-status"></p>
-                            
-                            <label for="studentPhone" class="block text-sm font-medium text-gray-700 mt-3">Phone Number</label>
-                            <input type="text" id="studentPhone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base" value="(416) 555-0192">
-                            <p class="text-xs text-gray-500 mt-1" id="studentPhone-status"></p>
-                        </div>
-
-                        <div class="p-4 border border-gray-200 rounded-lg bg-white">
-                            <p class="text-sm font-semibold text-gray-700 mb-2">Program Details</p>
-                            
-                             <label for="studentProgram" class="block text-sm font-medium text-gray-700">Program</label>
-                            <input type="text" id="studentProgram" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base font-bold" value="Medical Esthetics (EPQ)">
-                            <p class="text-xs text-gray-500 mt-1" id="studentProgram-status"></p>
-                            
-                            <label for="studentStartDate" class="block text-sm font-medium text-gray-700 mt-3">Proposed Start Date</label>
-                            <input type="date" id="studentStartDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base" value="2025-09-01">
-                            <p class="text-xs text-gray-500 mt-1" id="studentStartDate-status"></p>
-                            
-                            <label for="studentCampus" class="block text-sm font-medium text-gray-700 mt-3">Campus</label>
-                            <input type="text" id="studentCampus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base" value="Toronto Downtown">
-                            <p class="text-xs text-gray-500 mt-1" id="studentCampus-status"></p>
-                        </div>
-                        
-                        <div class="p-4 border border-gray-200 rounded-lg bg-white md:col-span-2">
-                             <p class="text-sm font-semibold text-gray-700 mb-2">Contact & Branch</p>
-                             <label for="studentBranch" class="block text-sm font-medium text-gray-700">Assigned Branch</label>
-                            <input type="text" id="studentBranch" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base" value="Main Campus">
-                            <p class="text-xs text-gray-500 mt-1" id="studentBranch-status"></p>
-                             
-                            <label for="studentAddress" class="block text-sm font-medium text-gray-700 mt-3">Full Address</label>
-                            <input type="text" id="studentAddress" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base" value="123 Main St, Toronto, ON M1M 1M1">
-                            <p class="text-xs text-gray-500 mt-1" id="studentAddress-status"></p>
-                        </div>
-                        
-                    </div>
-                     <p class="text-sm mt-4 text-gray-500 italic">Changes here must be saved via the 'Save & Finalize Financial Data' button on the Financial Agreement tab (this will update the verification log).</p>
-                </div>
-
-                <!-- Step 2: Required Document Uploads Sub-View (Interactive) -->
-                <div id="verification-subview-documents" class="verification-subview section-box hidden">
-                     <h3 class="text-xl font-semibold mb-4 border-b pb-2">2. Required Document Status (Admin Action)</h3>
-                    <div id="document-list" class="space-y-4">
-                        <!-- Document 1: Photo ID -->
-                        <div class="flex justify-between items-center p-3 border rounded-lg" data-doc-id="photoId">
-                            <div>
-                                <p class="font-medium text-gray-700">Government-Issued Photo ID</p>
-                                <p class="text-xs font-bold mt-1 verification-status" data-status-for="photoId"></p>
-                            </div>
-                            <div class="space-x-2">
-                                <button onclick="verifyDocument('photoId', 'Verified')" class="bg-green-500 text-white px-3 py-1 text-sm rounded-md hover:bg-green-600">Verify Document</button>
-                                <button onclick="verifyDocument('photoId', 'Not Uploaded')" class="bg-red-500 text-white px-3 py-1 text-sm rounded-md hover:bg-red-600">Reset Status</button>
-                            </div>
-                        </div>
-                        <!-- Document 2: Transcript -->
-                        <div class="flex justify-between items-center p-3 border rounded-lg" data-doc-id="transcript">
-                            <div>
-                                <p class="font-medium text-gray-700">High School Transcript</p>
-                                <p class="text-xs font-bold mt-1 verification-status" data-status-for="transcript"></p>
-                            </div>
-                            <div class="space-x-2">
-                                <button onclick="verifyDocument('transcript', 'Verified')" class="bg-green-500 text-white px-3 py-1 text-sm rounded-md hover:bg-green-600">Verify Document</button>
-                                <button onclick="verifyDocument('transcript', 'Not Uploaded')" class="bg-red-500 text-white px-3 py-1 text-sm rounded-md hover:bg-red-600">Reset Status</button>
-                            </div>
-                        </div>
-                        <!-- Document 3: Study Permit -->
-                        <div class="flex justify-between items-center p-3 border rounded-lg" data-doc-id="studyPermit">
-                            <div>
-                                <p class="font-medium text-gray-700">Study Permit/Visa (If International)</p>
-                                <p class="text-xs font-bold mt-1 verification-status" data-status-for="studyPermit"></p>
-                            </div>
-                            <div class="space-x-2">
-                                <button onclick="verifyDocument('studyPermit', 'Verified')" class="bg-green-500 text-white px-3 py-1 text-sm rounded-md hover:bg-green-600">Verify Document</button>
-                                <button onclick="verifyDocument('studyPermit', 'Not Uploaded')" class="bg-red-500 text-white px-3 py-1 text-sm rounded-md hover:bg-red-600">Reset Status</button>
-                            </div>
-                        </div>
-                        <!-- Document 4: Police Check (NEW) -->
-                        <div class="flex justify-between items-center p-3 border rounded-lg" data-doc-id="policeCheck">
-                            <div>
-                                <p class="font-medium text-gray-700">Police Check / Criminal Record Check</p>
-                                <p class="text-xs font-bold mt-1 verification-status" data-status-for="policeCheck"></p>
-                            </div>
-                            <div class="space-x-2">
-                                <button onclick="verifyDocument('policeCheck', 'Verified')" class="bg-green-500 text-white px-3 py-1 text-sm rounded-md hover:bg-green-600">Verify Document</button>
-                                <button onclick="verifyDocument('policeCheck', 'Not Uploaded')" class="bg-red-500 text-white px-3 py-1 text-sm rounded-md hover:bg-red-600">Reset Status</button>
-                            </div>
-                        </div>
-                    </div>
-                     <p class="text-sm mt-4 text-gray-500 italic">Verification status is automatically saved upon action. Click on a status to update it.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. FINANCIAL AGREEMENT VIEW (Functional with localStorage) -->
-        <div id="financial-view" class="view-content hidden">
-            <form id="financialForm" class="crm-card bg-white p-6 sm:p-8 rounded-xl" onchange="calculateTotal()">
-                
-                <!-- 1. PERSONAL & CONTACT VERIFICATION -->
-                <div class="section-box">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">1. Personal, Contact & Agent Verification</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Lead Details Box -->
-                        <div class="p-4 border border-green-300 bg-green-50 rounded-lg">
-                            <p class="text-sm font-semibold text-green-700 mb-2">Lead Details Confirmed</p>
-                            <p class="text-sm text-gray-700">Full Name: <span id="financial-student-name">Asad B.</span> | ID: <span id="studentIdDisplay">98765</span></p>
-                            <p class="text-sm text-gray-700">Email: <span id="financial-student-email">asad@example.com</span></p>
-                            <p class="text-sm text-gray-700">Phone: <span id="financial-student-phone">(555) 123-4567</span></p>
-                        </div>
-
-                        <!-- Program Details -->
-                        <div class="p-4 border border-gray-200 rounded-lg">
-                            <p class="text-sm font-semibold text-gray-700 mb-2">Program of Interest</p>
-                            <p class="text-base font-medium" id="financial-student-program">Diploma in Networking (2-Year)</p>
-                            <p class="text-sm text-gray-500 mt-2">Proposed Start Date: <span id="financial-student-start-date">2026-01-10</span></p>
-                            <a href="#" onclick="showView('verification'); showVerificationSubView('details'); return false;" class="text-indigo-500 text-xs hover:text-indigo-700">Edit Details</a>
-                        </div>
-                    </div>
-
-                    <!-- AGENT & COMMISSION TRACKING -->
-                    <div class="mt-6 p-4 bg-indigo-50 rounded-lg shadow-inner grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label for="agentId" class="block text-sm font-medium text-gray-700">Agent ID</label>
-                            <input type="text" id="agentId" value="AG-101" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-sm">
-                        </div>
-                        <div>
-                            <label for="agentName" class="block text-sm font-medium text-gray-700">Agent Name</label>
-                            <input type="text" id="agentName" value="Jane Doe" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-sm">
-                        </div>
-                        <div>
-                            <label for="commissionStatus" class="block text-sm font-medium text-gray-700">Commission Status</label>
-                            <select id="commissionStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-sm">
-                                <option>Pending Enrollment</option>
-                                <option>Due Payout (Deposit Rec.)</option>
-                                <option>Paid (Full)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- CREDENTIALS CONFIRMATION CHECKLIST -->
-                    <div class="mt-6 p-4 bg-gray-100 rounded-lg shadow-inner">
-                        <h3 class="text-base font-bold text-gray-800 mb-2">Internal Credential Confirmation Checklist</h3>
-                        <div class="grid grid-cols-2 gap-2 text-sm text-gray-700">
-                            <div class="flex items-center">
-                                <input type="checkbox" id="idConfirmed" class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2">
-                                <label for="idConfirmed">Government ID Confirmed</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="offerConfirmed" class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2">
-                                <label for="offerConfirmed">Offer Letter Signed</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="visaConfirmed" class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2">
-                                <label for="visaConfirmed">Visa/PR Status Verified</label>
-                            </div>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="academicConfirmed" class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2">
-                                <label for="academicConfirmed">Academic Pre-reqs Met</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. FINANCIAL OVERVIEW & PAYMENT OPTIONS -->
-                <div class="section-box">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">2. Financial Overview & Payment Options</h2>
-                    
-                    <!-- TOTAL FEES DISPLAY (Dynamic) -->
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 p-4 bg-indigo-700 text-white rounded-lg">
-                        <h3 class="text-lg font-light">Total Program Fees</h3>
-                        <p class="text-3xl font-extrabold" id="totalProgramFees">$14,500.00</p>
-                    </div>
-
-                    <!-- FEE BREAKDOWN TABLE (Precise Data Entry) -->
-                    <h4 class="text-lg font-semibold text-gray-700 mb-3">Program Fee Breakdown</h4>
-                    <div class="overflow-x-auto mb-6">
-                        <table class="min-w-full divide-y divide-gray-200 border rounded-lg">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Fee Type</th>
-                                    <th class="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Amount ($)</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-3 py-2 text-sm font-medium text-gray-900">Tuition Fee</td>
-                                    <td class="px-3 py-2">
-                                        <input type="number" id="tuitionFee" value="11500.00" oninput="calculateTotal()" class="w-32 border-gray-300 rounded-md p-1 text-right">
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-3 py-2 text-sm font-medium text-gray-900">Book Fees</td>
-                                    <td class="px-3 py-2">
-                                        <input type="number" id="bookFee" value="1000.00" oninput="calculateTotal()" class="w-32 border-gray-300 rounded-md p-1 text-right">
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-3 py-2 text-sm font-medium text-gray-900">Other Fees (Admin/Technology)</td>
-                                    <td class="px-3 py-2">
-                                        <input type="number" id="otherFee" value="2000.00" oninput="calculateTotal()" class="w-32 border-gray-300 rounded-md p-1 text-right">
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- INITIAL PAYMENT REQUIRED -->
-                    <div class="mb-8">
-                        <h4 class="text-lg font-semibold text-red-600 mb-2">Initial Payment Due: <span id="initialPaymentDisplay">$500.00</span></h4>
-                        <p class="text-sm text-gray-500 italic mb-3">(Due today to reserve enrollment spot)</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="initialPaymentMethod" class="block text-sm font-medium text-gray-700">Payment Method</label>
-                                <select id="initialPaymentMethod" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
-                                    <option>Credit/Debit Card</option>
-                                    <option>Bank Transfer (Proof Required)</option>
-                                    <option>Cash (In-person)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="initialPaymentDate" class="block text-sm font-medium text-gray-700">Payment Date</label>
-                                <input type="date" id="initialPaymentDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- FUNDING STATUS (Conditional Driver) -->
-                    <div class="mb-8 p-4 border border-gray-300 rounded-lg bg-gray-50">
-                        <label for="fundingStatus" class="block text-sm font-medium text-gray-700 mb-2">
-                            <span class="text-xl font-bold text-red-600 mr-2">3.</span> Primary Funding Status (REQUIRED)
-                        </label>
-                        <select id="fundingStatus" onchange="updateFundingSection(this.value)"
-                            class="mt-1 block w-full pl-3 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg rounded-md shadow-sm transition duration-150 ease-in-out">
-                            <option value="">-- Select Funding Type --</option>
-                            <option value="OSAP">OSAP (Ontario Student Assistance Program)</option>
-                            <option value="BJO">BJO (Better Jobs Ontario)</option>
-                            <option value="Self-Funded">Self-Funded</option>
-                        </select>
-                    </div>
-
-
-                    <!-- --- CONDITIONAL SECTIONS START HERE --- -->
-
-                    <!-- OSAP FIELDS (Conditional) -->
-                    <div id="osap-fields" class="funding-section p-6 bg-blue-50 border border-blue-200 rounded-lg hidden">
-                        <h3 class="text-lg font-bold text-blue-700 mb-4 border-b border-blue-300 pb-2">OSAP Details (Loan & Grant Tracking)</h3>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">OSAP Application Status</label>
-                                <select id="osapApplicationStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
-                                    <option>Required Docs Submitted</option>
-                                    <option>Assessment Complete</option>
-                                    <option>Funding Released</option>
-                                </select>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700">OSAP Total Assessed Funding ($)</label>
-                                <input type="number" id="osapTotalAssessedFunding" value="9800.00" oninput="calculateTotal()" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-white font-semibold" placeholder="e.g., 9800.00">
-                            </div>
-                            <div class="md:col-span-3">
-                                <label class="block text-sm font-medium text-gray-700">Remaining Balance (Self-Pay)</label>
-                                <p class="mt-2 text-lg font-semibold text-red-600" id="osapRemainingBalance">$4,700.00 (Calculated)</p>
-                            </div>
-                        </div>
-
-                        <!-- Disbursement Table for Multiple COEs -->
-                        <h4 class="text-md font-semibold text-blue-600 mb-3">Disbursement Schedule (COE Tracking)</h4>
-                        <div class="overflow-x-auto rounded-lg border border-blue-300">
-                            <table class="min-w-full divide-y divide-blue-200">
-                                <thead class="bg-blue-200">
-                                    <tr>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-blue-800 uppercase tracking-wider">Installment</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-blue-800 uppercase tracking-wider">Amount ($)</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-blue-800 uppercase tracking-wider">COE Date</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-blue-800 uppercase tracking-wider">Release Date</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-blue-800 uppercase tracking-wider">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="osap-disbursement-table" class="bg-white divide-y divide-blue-100 text-sm">
-                                    <!-- Dynamic rows will be inserted here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- BJO FIELDS (Conditional) -->
-                    <div id="bjo-fields" class="funding-section p-6 bg-yellow-50 border border-yellow-200 rounded-lg hidden">
-                        <h3 class="text-lg font-bold text-yellow-700 mb-4 border-b border-yellow-300 pb-2">Better Jobs Ontario (BJO) Details</h3>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">BJO Application Status</label>
-                                <select id="bjoApplicationStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
-                                    <option>Case Manager Assigned</option>
-                                    <option>Ministry Approved</option>
-                                    <option>Funding Confirmed</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Total BJO Funding Amount ($)</label>
-                                <input type="number" id="bjoTotalFunding" value="12500.00" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-white" placeholder="e.g., 12500.00">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700">EO Case Manager Name & Contact</label>
-                                <input type="text" id="bjoCaseManager" value="Jane Doe (Agency) - 555-1234" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" placeholder="Name and contact details">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700">BJO Payment Details (Text Area)</label>
-                                <textarea rows="2" id="bjoPaymentDetails" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">Tuition is paid in one lump sum. Living allowance goes directly to student.</textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SELF-FUNDED FIELDS (Conditional) -->
-                    <div id="self-funded-fields" class="funding-section p-6 bg-green-50 border border-green-200 rounded-lg hidden">
-                        <h3 class="text-lg font-bold text-green-700 mb-4 border-b border-green-300 pb-2">Self-Funded Details</h3>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Payment Plan Type</label>
-                                <select id="sfPaymentPlanType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
-                                    <option>Full Payment</option>
-                                    <option>2 Installments</option>
-                                    <option>Monthly Plan (10 Installments)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="sfNextPaymentDate" class="block text-sm font-medium text-gray-700">Next Payment Due Date</label>
-                                <input type="date" id="sfNextPaymentDate" value="2025-11-01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Total Due (Current Cycle) ($)</label>
-                                <input type="number" id="sfTotalDueCycle" value="1250.00" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-white" placeholder="e.g., 1250.00">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Payment Collection Status</label>
-                                <select id="sfPaymentCollectionStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-red-100 border-red-500">
-                                    <option>Pending</option>
-                                    <option>Overdue (7 Days)</option>
-                                    <option>Paid (Full)</option>
-                                </select>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700">Notes on Payment</label>
-                                <textarea rows="2" id="sfNotesOnPayment" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">Student confirmed payment via E-Transfer on 10/18, awaiting bank confirmation.</textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-                
-                <!-- 3. REVIEW & SIGN ENROLLMENT CONTRACT -->
-                <div class="section-box">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">3. Review & Sign Enrollment Contract</h2>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Contract Placeholder (Admin View: Document is signed) -->
-                        <div class="p-4 bg-gray-100 border border-gray-300 rounded-lg h-64 overflow-y-scroll text-sm text-gray-700">
-                            <p class="font-bold mb-2 text-green-600">Contract Signed and Filed (2025-11-01)</p>
-                            <p class="mb-2">Full contract document hash: <code>a3c6b9e2f4d1c0b7a8f5e3d4c1b0a9d8</code></p>
-                            <a href="#" class="text-indigo-500 hover:text-indigo-700">View Final Signed PDF</a>
-                        </div>
-
-                        <!-- Signature & Agreement Status -->
-                        <div class="p-4 flex flex-col justify-between border-l pl-4">
-                            <div class="mb-4">
-                                <div class="flex items-center mb-3 text-green-600 font-bold">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                    </svg>
-                                    Agreement Status: Confirmed by Student
-                                </div>
-                            </div>
-                            
-                            <div class="mt-auto">
-                                <label for="eSignatureName" class="block text-sm font-medium text-gray-700">E-Signature Name:</label>
-                                <input type="text" id="eSignatureName" value="Anya Sharma" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base font-bold text-gray-900">
-                                
-                                <label for="dateSigned" class="block text-sm font-medium text-gray-700 mt-3">Date Signed:</label>
-                                <input type="date" id="dateSigned" value="2025-11-01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base font-bold text-gray-900">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SUBMISSION BUTTON (Admin Action: Finalize) -->
-                    <div class="mt-10 pt-6 border-t border-gray-100 flex justify-center">
-                        <!-- Attached the save logic here -->
-                        <button type="button" onclick="window.saveFinancialData()" class="px-8 py-4 bg-indigo-600 text-white font-bold rounded-lg shadow-lg hover:bg-indigo-700 transition duration-200 ease-in-out">
-                            Save & Finalize Financial Data
-                        </button>
-                    </div>
-                </div>
-                
-            </form>
-        </div>
-        
-        <!-- 5. REPORTING & COMPLIANCE VIEW (Bulk Actions - NEW MAIN TAB) -->
+        <!-- 5. REPORTING & COMPLIANCE VIEW (Bulk Actions) -->
         <div id="reporting-view" class="view-content hidden">
              <div class="bg-white p-6 rounded-xl crm-card">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">Bulk Reporting & Compliance Center</h2>
+                
+                <!-- Filter Controls -->
+                <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-4" onchange="window.applyRosterFilters()">
+                    <div>
+                        <label for="filterStatus" class="block text-sm font-medium text-gray-700">Enrollment Status</label>
+                        <select id="filterStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-sm">
+                            <option value="Enrolled/Graduated" selected>Enrolled / Graduated (Default)</option>
+                            <option value="All">All Statuses</option>
+                            <option value="Lead">Lead</option>
+                            <option value="Active">Active</option>
+                            <option value="Enrolled">Enrolled</option>
+                            <option value="Graduated">Graduated</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="filterProgram" class="block text-sm font-medium text-gray-700">Program</label>
+                        <select id="filterProgram" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-sm">
+                            <option value="All">All Programs</option>
+                            <option value="Medical Esthetics (EPQ)">Medical Esthetics</option>
+                            <option value="Dental Assistant">Dental Assistant</option>
+                            <option value="HR Specialist">HR Specialist</option>
+                            <option value="ME - Sept-2025">ME - Sept-2025</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="filterBranch" class="block text-sm font-medium text-gray-700">Branch / Campus</label>
+                        <select id="filterBranch" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-sm">
+                            <option value="All">All Branches</option>
+                            <option value="Main Campus">Main Campus</option>
+                            <option value="North Branch">North Branch</option>
+                            <option value="West Branch">West Branch</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="window.applyRosterFilters()" class="w-full px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700">Apply Filters</button>
+                    </div>
+                </div>
+
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <button onclick="alert('Simulating bulk T2202 generation.')" class="p-4 bg-purple-100 rounded-lg shadow-md hover:bg-purple-200 transition text-left font-bold text-purple-800">
                         Generate Bulk T2202s
-                        <p class="text-sm font-normal text-gray-700 mt-1">Generate tax forms for all eligible enrolled students.</p>
+                        <p class="text-sm font-normal text-gray-700 mt-1">Generate tax forms for all eligible enrolled students in current view.</p>
                     </button>
                     <button onclick="alert('Simulating KPI report export.')" class="p-4 bg-blue-100 rounded-lg shadow-md hover:bg-blue-200 transition text-left font-bold text-blue-800">
                         Academic KPI Report
-                        <p class="text-sm font-normal text-gray-700 mt-1">Export completion rates and grade averages.</p>
+                        <p class="text-sm font-normal text-gray-700 mt-1">Export completion rates and grade averages for current view.</p>
                     </button>
                     <button onclick="alert('Simulating commission payout list.')" class="p-4 bg-green-100 rounded-lg shadow-md hover:bg-green-200 transition text-left font-bold text-green-800">
                         Commission Payout List
-                        <p class="text-sm font-normal text-gray-700 mt-1">List all agents with commissions due (Deposit Rec. status).</p>
+                        <p class="text-sm font-normal text-gray-700 mt-1">List all agents with commissions due in current view.</p>
                     </button>
                 </div>
                 
-                <h3 class="text-xl font-semibold mb-4 border-b pb-2">Student Roster for Reporting (All Leads/Enrolled)</h3>
+                <h3 class="text-xl font-semibold mb-4 border-b pb-2">Student Roster (Filtered)</h3>
 
                 <!-- Roster table will be populated by JS -->
                 <div class="overflow-x-auto rounded-lg border border-gray-300">
@@ -782,19 +267,19 @@
                     </select>
                 </div>
                 <div class="flex justify-end space-x-3">
-                    <button type="button" onclick="closeNewLeadModal()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100">Cancel</button>
+                    <button type="button" onclick="window.closeNewLeadModal()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700">Save Lead</button>
                 </div>
             </form>
         </div>
     </div>
     
-    <!-- Student Details Modal (New Student Card) -->
+    <!-- Student Details Modal (Small Card) -->
     <div id="student-detail-modal" class="modal-backdrop">
         <div class="bg-white rounded-lg p-6 max-w-xl mx-auto mt-20 relative">
             <div class="flex justify-between items-start border-b pb-3 mb-4">
                 <h3 class="text-2xl font-bold text-gray-800">Lead Details: <span id="detail-card-name"></span></h3>
-                <button onclick="closeStudentDetailsModal()" class="text-gray-500 hover:text-gray-900 font-bold text-xl">×</button>
+                <button onclick="window.closeStudentDetailsModal()" class="text-gray-500 hover:text-gray-900 font-bold text-xl">×</button>
             </div>
             
             <div id="detail-card-content" class="space-y-4">
@@ -830,20 +315,147 @@
             
             <div class="mt-6 flex justify-end space-x-3">
                 <button onclick="alert('Simulating Contacting Lead: ' + document.getElementById('detail-card-name').textContent)" class="px-4 py-2 text-indigo-600 border border-indigo-300 rounded-lg hover:bg-indigo-50">📞 Contact Lead</button>
-                <button onclick="closeStudentDetailsModal()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-600">Close</button>
+                <button onclick="window.closeStudentDetailsModal()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-600">Close</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MEGA CASE FILE MODAL (Consolidated Content) -->
+    <div id="case-file-modal" class="modal-backdrop">
+        <div class="case-file-container bg-white rounded-xl crm-card p-6 sm:p-8">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+                <h1 class="text-3xl font-extrabold text-indigo-700">Active Case File: <span id="modal-profile-name"></span></h1>
+                <button onclick="window.closeCaseFileModal()" class="px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600">Close Case (Exit)</button>
+            </div>
+
+            <!-- Profile and Financial Summary -->
+            <div id="modal-profile-summary" class="grid grid-cols-3 gap-4 mb-8 text-center text-sm">
+                <div class="p-3 bg-gray-100 rounded-lg border-l-4 border-indigo-500"><span class="font-semibold">Program:</span> <span id="modal-summary-program"></span></div>
+                <div class="p-3 bg-gray-100 rounded-lg border-l-4 border-red-500"><span class="font-semibold">Balance Due:</span> <span id="modal-summary-balance"></span></div>
+                <div class="p-3 bg-gray-100 rounded-lg border-l-4 border-green-500"><span class="font-semibold">Status:</span> <span id="modal-summary-status"></span></div>
+            </div>
+
+            <!-- Consolidated Form -->
+            <form id="consolidatedForm" onchange="window.calculateTotalModal()">
+                
+                <!-- SECTION 1: VERIFICATION DETAILS -->
+                <div class="section-box border-indigo-400">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">1. Credential & Identity Verification</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Left: Personal Details (Editable) -->
+                        <div class="p-4 border border-gray-200 rounded-lg bg-white">
+                            <p class="text-sm font-semibold text-gray-700 mb-2">Student Identity (Editable)</p>
+                            <label for="modal-studentName" class="block text-sm font-medium text-gray-700">Full Name</label>
+                            <input type="text" id="modal-studentName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base font-bold">
+                            <p class="text-xs text-gray-500 mt-1" id="modal-studentName-status"></p>
+                            
+                            <label for="modal-studentEmail" class="block text-sm font-medium text-gray-700 mt-3">Email</label>
+                            <input type="email" id="modal-studentEmail" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base">
+                            <p class="text-xs text-gray-500 mt-1" id="modal-studentEmail-status"></p>
+                            
+                            <label for="modal-studentPhone" class="block text-sm font-medium text-gray-700 mt-3">Phone Number</label>
+                            <input type="text" id="modal-studentPhone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base">
+                            <p class="text-xs text-gray-500 mt-1" id="modal-studentPhone-status"></p>
+                        </div>
+                        
+                         <!-- Right: Program & Contact (Editable) -->
+                        <div class="p-4 border border-gray-200 rounded-lg bg-white">
+                            <p class="text-sm font-semibold text-gray-700 mb-2">Program & Branch</p>
+                            <label for="modal-studentProgram" class="block text-sm font-medium text-gray-700">Program</label>
+                            <input type="text" id="modal-studentProgram" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base font-bold">
+                            <p class="text-xs text-gray-500 mt-1" id="modal-studentProgram-status"></p>
+                            
+                            <label for="modal-studentBranch" class="block text-sm font-medium text-gray-700 mt-3">Assigned Branch</label>
+                            <input type="text" id="modal-studentBranch" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base">
+                            <p class="text-xs text-gray-500 mt-1" id="modal-studentBranch-status"></p>
+                            
+                            <label for="modal-studentAddress" class="block text-sm font-medium text-gray-700 mt-3">Full Address</label>
+                            <input type="text" id="modal-studentAddress" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base">
+                            <p class="text-xs text-gray-500 mt-1" id="modal-studentAddress-status"></p>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-xl font-semibold mt-8 mb-4 border-b pb-2">Required Document Status (Admin Action)</h3>
+                    <div id="modal-document-list" class="space-y-4">
+                        <!-- Documents populated here by JS (photoId, transcript, etc.) -->
+                    </div>
+                </div>
+
+                <!-- SECTION 2: FINANCIAL AGREEMENT -->
+                <div class="section-box border-green-400">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">2. Financial Agreement & Funding</h2>
+                    
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 p-4 bg-indigo-700 text-white rounded-lg">
+                        <h3 class="text-lg font-light">Total Program Fees</h3>
+                        <p class="text-3xl font-extrabold" id="modal-totalProgramFees">$14,500.00</p>
+                    </div>
+
+                    <!-- Fee Breakdown -->
+                    <h4 class="text-lg font-semibold text-gray-700 mb-3">Program Fee Breakdown (Editable)</h4>
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Tuition Fee ($)</label>
+                            <input type="number" id="modal-tuitionFee" value="11500.00" oninput="window.calculateTotalModal()" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-right">
+                        </div>
+                         <div>
+                            <label class="block text-sm font-medium text-gray-700">Book Fees ($)</label>
+                            <input type="number" id="modal-bookFee" value="1000.00" oninput="window.calculateTotalModal()" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-right">
+                        </div>
+                         <div>
+                            <label class="block text-sm font-medium text-gray-700">Other Fees ($)</label>
+                            <input type="number" id="modal-otherFee" value="2000.00" oninput="window.calculateTotalModal()" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-right">
+                        </div>
+                    </div>
+
+                    <!-- Funding Status and Conditional Fields -->
+                    <div class="mb-8 p-4 border border-gray-300 rounded-lg bg-gray-50">
+                        <label for="modal-fundingStatus" class="block text-sm font-medium text-gray-700 mb-2">Primary Funding Status (REQUIRED)</label>
+                        <select id="modal-fundingStatus" onchange="window.updateFundingSectionModal(this.value)"
+                            class="mt-1 block w-full pl-3 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg rounded-md shadow-sm">
+                            <option value="">-- Select Funding Type --</option>
+                            <option value="OSAP">OSAP (Ontario Student Assistance Program)</option>
+                            <option value="BJO">BJO (Better Jobs Ontario)</option>
+                            <option value="Self-Funded">Self-Funded</option>
+                        </select>
+                    </div>
+
+                    <!-- Conditional OSAP/BJO/Self-Funded Fields (Populated by JS) -->
+                    <div id="modal-conditional-funding-fields">
+                        <!-- Conditional field sections will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- SECTION 3: CONTRACT & SAVE -->
+                <div class="section-box border-red-400">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">3. Final Agreement & Save</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="p-4 bg-gray-100 rounded-lg h-40 overflow-y-scroll text-sm text-gray-700">
+                             <p class="font-bold mb-2 text-green-600">Contract Status: Signed and Filed (2025-11-01)</p>
+                             <p>By clicking save, you confirm the financial details and document verification status for this student.</p>
+                        </div>
+                        <div class="p-4 border-l pl-4">
+                            <label for="modal-eSignatureName" class="block text-sm font-medium text-gray-700">E-Signature Name (Admin Log)</label>
+                            <input type="text" id="modal-eSignatureName" value="Admin User-001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-base font-bold text-gray-900">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 pt-4 border-t flex justify-center">
+                         <button type="button" onclick="window.saveCaseFileModalData()" class="px-8 py-4 bg-indigo-600 text-white font-bold rounded-lg shadow-lg hover:bg-indigo-700 transition duration-200 ease-in-out">
+                            Save & Finalize Case File
+                        </button>
+                    </div>
+                </div>
+
+            </form>
         </div>
     </div>
 
 
     <script>
         // --- CONSTANTS AND GLOBAL DUMMY DATA ---
-        // New State Management Key: Stores the ID of the student the admin is currently viewing
         const CURRENT_STUDENT_ID_KEY = 'active_student_id'; 
-        
-        // Default ID used when launching for the very first time
         const DEFAULT_STUDENT_ID = 'student_98765_anya';
-
         const LEADS_STORAGE_KEY = 'elite_college_leads'; 
         const initialPaymentAmount = 500.00; 
         const ADMIN_USER = 'Admin User-001'; 
@@ -854,7 +466,6 @@
             { installment: '2 (Winter - 40%)', amount: 3920.00, coeDate: '2026-01-05', releaseDate: '2026-01-12', status: 'Pending' },
         ];
         
-        // Template data used for initializing a new record, drawing basic info from a sample lead
         const STUDENT_PROFILE_DATA_TEMPLATE = {
             fullName: "Anya Sharma",
             email: "anya.sharma@example.com",
@@ -862,20 +473,19 @@
             program: "Medical Esthetics (EPQ)",
             startDate: "2025-09-01",
             campus: "Toronto Downtown",
-            enrollmentStatus: "Lead", // Added enrollment status
+            enrollmentStatus: "Enrolled", 
             legalName: "Anya K. Sharma",
             branch: "Main Campus",
             address: "123 Main St, Toronto, ON M1M 1M1"
         };
         
-        // Initial dummy leads for the Kanban pipeline
         const INITIAL_LEADS = [
-            { id: 'student_1', name: "Anya Sharma", program: "Medical Esthetics", status: "New Inquiries", enrollmentStatus: "Lead", agent: "No Agent", source: "Website Inquiry", date: "2025-10-20", email: "anya.sharma@example.com", phone: "(416) 555-0192", branch: "Main Campus", address: "123 Main St" },
-            { id: 'student_2', name: "Carlos Ruiz", program: "Dental Assistant", status: "New Inquiries", enrollmentStatus: "Lead", agent: "Agent X", source: "Referral", date: "2025-10-21", email: "carlos@example.com", phone: "(416) 555-0193", branch: "North Branch", address: "456 Oak Ave" },
+            { id: 'student_1', name: "Anya Sharma", program: "Medical Esthetics (EPQ)", status: "Enrolled Students", enrollmentStatus: "Enrolled", agent: "No Agent", source: "Website Inquiry", date: "2025-10-20", email: "anya.sharma@example.com", phone: "(416) 555-0192", branch: "Main Campus", address: "123 Main St" },
+            { id: 'student_2', name: "Carlos Ruiz", program: "Dental Assistant", status: "Application Started", enrollmentStatus: "Active", agent: "Agent X", source: "Referral", date: "2025-10-21", email: "carlos@example.com", phone: "(416) 555-0193", branch: "North Branch", address: "456 Oak Ave" },
             { id: 'student_3', name: "Ben Carter", program: "HR Specialist", status: "Contacted & Interested", enrollmentStatus: "Lead", agent: "Agent Y", source: "Marketing Campaign", date: "2025-10-22", email: "ben@example.com", phone: "(416) 555-0194", branch: "Main Campus", address: "789 Pine Ln" },
-            { id: 'student_4', name: "Omar Khan", program: "Documents Pending", status: "Application Started", enrollmentStatus: "Active", agent: "Agent X", source: "Website Inquiry", date: "2025-10-23", email: "omar@example.com", phone: "(416) 555-0195", branch: "West Branch", address: "101 Elm Blvd" },
-            { id: 'student_5', name: "Sophia Chen", program: "Deposit Received", status: "Application Started", enrollmentStatus: "Active", agent: "No Agent", source: "Admin Entry", date: "2025-10-24", email: "sophia@example.com", phone: "(416) 555-0196", branch: "Main Campus", address: "202 Cedar Pkwy" },
-            { id: 'student_6', name: "Liam Johnson", program: "ME - Sept-2025", status: "Enrolled Students", enrollmentStatus: "Enrolled", agent: "Agent Z", source: "Referral", date: "2025-10-25", email: "liam@example.com", phone: "(416) 555-0197", branch: "North Branch", address: "303 Birch Dr" },
+            { id: 'student_4', name: "Omar Khan", program: "Medical Esthetics (EPQ)", status: "New Inquiries", enrollmentStatus: "Lead", agent: "Agent X", source: "Website Inquiry", date: "2025-10-23", email: "omar@example.com", phone: "(416) 555-0195", branch: "West Branch", address: "101 Elm Blvd" },
+            { id: 'student_5', name: "Sophia Chen", program: "HR Specialist", status: "Enrolled Students", enrollmentStatus: "Graduated", agent: "No Agent", source: "Admin Entry", date: "2025-10-24", email: "sophia@example.com", phone: "(416) 555-0196", branch: "Main Campus", address: "202 Cedar Pkwy" },
+            { id: 'student_6', name: "Liam Johnson", program: "Dental Assistant", status: "Enrolled Students", enrollmentStatus: "Enrolled", agent: "Agent Z", source: "Referral", date: "2025-10-25", email: "liam@example.com", phone: "(416) 555-0197", branch: "North Branch", address: "303 Birch Dr" },
         ];
 
 
@@ -893,58 +503,18 @@
             }, 3000);
         }
         
-        // Fetches the ID of the student currently selected in the CRM context
         function getActiveStudentId() {
             return localStorage.getItem(CURRENT_STUDENT_ID_KEY) || null;
         }
         
-        // Clears the Active Student Context (used when returning to pipeline)
         window.clearActiveStudentContext = function() {
             localStorage.removeItem(CURRENT_STUDENT_ID_KEY);
-            showView('pipeline');
+            window.showView('pipeline');
         }
         
-        // Checks if a student is active. If not, redirects to pipeline.
-        function checkContextAndShowView(viewId) {
-            const activeId = getActiveStudentId();
-            if (!activeId) {
-                // If no student is selected, show the warning/pipeline view
-                showView('context-warning');
-                return;
-            }
-            // If context is set, show the desired view
-            showView(viewId);
-        }
-
-        // Sets the Active Student Context
-        window.setActiveStudent = function(leadId) {
-            const leads = getLeads();
-            const lead = leads.find(l => l.id === leadId);
-
-            if (!lead) {
-                showMessage("Error: Lead not found.", true);
-                return;
-            }
-            
-            // 1. Set the active student ID
-            localStorage.setItem(CURRENT_STUDENT_ID_KEY, leadId);
-            
-            // 2. Ensure a full student record exists for this lead ID
-            if (!localStorage.getItem(`student_${leadId}`)) {
-                const initialRecord = initializeStudentSpecificRecord(lead);
-                localStorage.setItem(`student_${leadId}`, JSON.stringify(initialRecord));
-                showMessage(`New record initialized for ${lead.name}.`, false);
-            }
-
-            // 3. Switch to the profile view to begin admin work
-            showView('profile');
-        }
-
-
         // --- VIEW MANAGEMENT FUNCTIONS ---
 
-        // Controls which tab content is shown
-        function showView(viewId) {
+        window.showView = function(viewId) {
             const views = document.querySelectorAll('.view-content');
             views.forEach(view => {
                 view.classList.add('hidden');
@@ -953,27 +523,24 @@
             const buttons = document.querySelectorAll('nav button');
             buttons.forEach(btn => {
                 btn.classList.remove('tab-active');
-                btn.classList.remove('tab-context-active');
             });
             
             const activeView = document.getElementById(viewId + '-view');
-            const activeButton = document.querySelector(`button[onclick="showView('${viewId}')"]`) || document.getElementById(viewId + '-btn');
+            const activeButton = document.getElementById(viewId + '-btn');
 
             if (activeView) {
                 activeView.classList.remove('hidden');
             }
-            if (activeButton && (viewId === 'pipeline' || viewId === 'reporting')) {
+            if (activeButton) {
                 activeButton.classList.add('tab-active');
-            } else if (activeButton && viewId !== 'context-warning') {
-                // For contextual tabs (Profile, Verification, Financial)
-                activeButton.classList.add('tab-context-active');
             }
             
             // Show/Hide Active Student Bar based on view
             const activeStudentBar = document.getElementById('active-student-bar');
             const studentId = getActiveStudentId();
 
-            if (studentId && viewId !== 'pipeline' && viewId !== 'reporting' && viewId !== 'context-warning') {
+            // Note: Since Profile, Verification, and Financial are now inside the modal, only Pipeline and Reporting need to be handled here.
+            if (studentId && viewId === 'pipeline') {
                 const storedData = localStorage.getItem(`student_${studentId}`);
                 const data = storedData ? JSON.parse(storedData) : {};
                 document.getElementById('active-student-name-display').textContent = data.verificationDetails?.fullName || 'N/A';
@@ -984,378 +551,148 @@
 
 
             // Trigger data/view specific renders
-            if (viewId === 'financial') {
-                window.loadFinancialData();
-            } else if (viewId === 'profile') {
-                window.renderProfileData();
-                showProfileSubView('profile'); 
-            } else if (viewId === 'pipeline') {
+            if (viewId === 'pipeline') {
                  renderKanbanPipeline();
-            } else if (viewId === 'verification') {
-                window.loadVerificationData();
-                showVerificationSubView('details'); 
             } else if (viewId === 'reporting') {
                 renderReportingRoster();
             }
         }
         
-        // --- PROFILE SUB-VIEW FUNCTIONS (Student Profile & History Tab) ---
-
-        function showProfileSubView(subviewId) {
-            const subviews = document.querySelectorAll('.profile-subview');
-            subviews.forEach(view => view.classList.add('hidden'));
-
-            const navBtns = document.querySelectorAll('.profile-nav-btn');
-            navBtns.forEach(btn => {
-                btn.classList.remove('bg-indigo-50', 'text-indigo-800', 'font-semibold');
-            });
-
-            document.getElementById(`profile-subview-${subviewId}`).classList.remove('hidden');
-            document.querySelector(`button[data-view="${subviewId}"]`).classList.add('bg-indigo-50', 'text-indigo-800', 'font-semibold');
-
-            if (subviewId === 'financial') {
-                renderFinancialSummary();
-            }
-        }
-
-        window.renderProfileData = function() {
-            const studentId = getActiveStudentId();
-            const storedData = localStorage.getItem(`student_${studentId}`);
-            const data = storedData ? JSON.parse(storedData) : initializeStudentSpecificRecord(null, true);
+        // --- MODAL CONTROL (NEW) ---
+        window.openCaseFileModal = function(leadId) {
+            // Set context first
+            setActiveStudentContextOnly(leadId);
             
-            const totalFees = data.feeBreakdown.tuitionFee + data.feeBreakdown.bookFee + data.feeBreakdown.otherFee;
-            let balance = totalFees - (data.osapDetails?.totalAssessedFunding || 0) - initialPaymentAmount;
-
-            if (data.fundingStatus === 'Self-Funded') {
-                balance = totalFees - initialPaymentAmount;
-            } else if (data.fundingStatus === 'BJO' && data.bjoDetails?.totalFunding >= totalFees) {
-                balance = 0;
-            }
+            // Load all data into modal fields
+            loadAllModalData();
             
-            // --- Determine Enrollment Status ---
-            const currentEnrollmentStatus = data.enrollmentStatus || 'Lead';
-            const isEnrolledOrGraduated = ['Enrolled', 'Graduated'].includes(currentEnrollmentStatus);
-            
-            // --- Conditional Visibility for Academics Tab ---
-            const academicsBtn = document.getElementById('academics-btn');
-            if (isEnrolledOrGraduated) {
-                academicsBtn.classList.remove('hidden');
-            } else {
-                academicsBtn.classList.add('hidden');
-            }
-            
-            // --- Populate Header Bar ---
-            document.getElementById('profile-name').textContent = data.verificationDetails?.fullName || 'N/A';
-            document.getElementById('profile-status').textContent = currentEnrollmentStatus.toUpperCase(); 
-            document.getElementById('profile-balance').textContent = `BALANCE DUE: $${Math.max(0, balance).toFixed(2)}`;
-            
-            // --- Populate Student Profile sub-view ---
-            document.getElementById('legal-name').textContent = data.verificationDetails?.fullName || 'N/A';
-            document.getElementById('program-name').textContent = data.verificationDetails?.program || 'N/A';
-            document.getElementById('start-date').textContent = data.verificationDetails?.startDate || 'N/A';
-            document.getElementById('campus').textContent = data.verificationDetails?.campus || 'N/A';
-            document.getElementById('profile-email').textContent = data.verificationDetails?.email || 'N/A';
-            document.getElementById('profile-phone').textContent = data.verificationDetails?.phone || 'N/A';
-            document.getElementById('profile-address').textContent = `${data.verificationDetails?.address || 'N/A'} (Branch: ${data.verificationDetails?.branch || 'N/A'})`;
-
-
-            // Populate Agent Details
-            document.getElementById('agent-name-profile').textContent = data.agentDetails?.agentName || 'N/A';
-            document.getElementById('agent-id-profile').textContent = data.agentDetails?.agentId || 'N/A';
-            document.getElementById('commission-status-profile').textContent = data.agentDetails?.commissionStatus || 'N/A';
-            
-            // Ensure the default subview is active on first render
-            showProfileSubView('profile');
-        };
-        
-        function renderFinancialSummary() {
-            const studentId = getActiveStudentId();
-            const storedData = localStorage.getItem(`student_${studentId}`);
-            const data = storedData ? JSON.parse(storedData) : initializeStudentSpecificRecord(null, true);
-            
-            const totalFees = data.feeBreakdown.tuitionFee + data.feeBreakdown.bookFee + data.feeBreakdown.otherFee;
-            let balance = totalFees - (data.osapDetails?.totalAssessedFunding || 0) - initialPaymentAmount;
-
-            if (data.fundingStatus === 'Self-Funded') {
-                balance = totalFees - initialPaymentAmount;
-            } else if (data.fundingStatus === 'BJO' && data.bjoDetails?.totalFunding >= totalFees) {
-                balance = 0;
-            }
-
-            document.getElementById('summary-total-fees').textContent = `$${totalFees.toFixed(2)}`;
-            document.getElementById('summary-balance-due').textContent = `$${Math.max(0, balance).toFixed(2)}`;
-            document.getElementById('summary-funding-status').textContent = data.fundingStatus;
-            
-            document.getElementById('summary-deposit-paid').textContent = data.initialPayment.amount.toFixed(2);
-            document.getElementById('summary-assessed-funding').textContent = (data.osapDetails?.totalAssessedFunding || data.bjoDetails?.totalFunding || 0).toFixed(2);
-            
-            let statusNote = "N/A";
-            if (data.fundingStatus === 'OSAP') {
-                statusNote = `Status: ${data.osapDetails.applicationStatus}. Requires 2nd COE submission.`;
-            } else if (data.fundingStatus === 'BJO') {
-                statusNote = `Status: ${data.bjoDetails.applicationStatus}. Case Manager: ${data.bjoDetails.caseManager}.`;
-            } else if (data.fundingStatus === 'Self-Funded') {
-                statusNote = `Next Due: ${data.selfFundedDetails.nextPaymentDate}. Collection Status: ${data.selfFundedDetails.collectionStatus}.`;
-            }
-            document.getElementById('summary-status-note').textContent = statusNote;
-        }
-
-        // --- VERIFICATION SUB-VIEW FUNCTIONS (Credential Verification Tab) ---
-        
-        // Controls which sub-tab content is shown in the Verification view
-        function showVerificationSubView(subviewId) {
-            const subviews = document.querySelectorAll('.verification-subview');
-            subviews.forEach(view => view.classList.add('hidden'));
-
-            const navBtns = document.querySelectorAll('.verification-nav-btn');
-            navBtns.forEach(btn => {
-                btn.classList.remove('tab-active');
-            });
-
-            document.getElementById(`verification-subview-${subviewId}`).classList.remove('hidden');
-            document.querySelector(`button[data-verify-view="${subviewId}"]`).classList.add('tab-active');
-            
-            // Re-render document statuses if moving to the document view
-            if (subviewId === 'documents') {
-                renderDocumentStatuses();
-            }
+            document.getElementById('case-file-modal').style.display = 'block';
         }
         
-        // Function to update document status and save immediately
-        window.verifyDocument = function(docId, newStatus) {
-            const studentId = getActiveStudentId();
-            const storedData = localStorage.getItem(`student_${studentId}`);
-            let data = storedData ? JSON.parse(storedData) : initializeStudentSpecificRecord(null, true);
-            
-            // Update document status and log verification
-            data.documentStatus[docId] = newStatus;
-            data.documentStatus[`${docId}VerifiedBy`] = `${ADMIN_ROLE} / ${ADMIN_USER} on ${new Date().toISOString().substring(0, 10)}`;
-            
-            try {
-                localStorage.setItem(`student_${studentId}`, JSON.stringify(data));
-                renderDocumentStatuses();
-                showMessage(`Document ${docId} status updated to: ${newStatus}.`, false);
-            } catch (error) {
-                showMessage("Error saving document status.", true);
-            }
+        window.closeCaseFileModal = function() {
+            document.getElementById('case-file-modal').style.display = 'none';
         }
 
-        // Function to render the document statuses in the verification tab
-        function renderDocumentStatuses() {
-            const studentId = getActiveStudentId();
-            const storedData = localStorage.getItem(`student_${studentId}`);
-            const data = storedData ? JSON.parse(storedData) : initializeStudentSpecificRecord(null, true);
-            const docStatuses = data.documentStatus || {};
-
-            // Define status colors and text
-            const statusMap = {
-                'Verified': { color: 'bg-green-50 border-green-200', text: 'Status: Verified', textColor: 'text-green-600' },
-                'Not Uploaded': { color: 'bg-red-50 border-red-200', text: 'Status: Not Uploaded', textColor: 'text-red-500' },
-                'Review Pending': { color: 'bg-yellow-50 border-yellow-200', text: 'Status: Review Pending', textColor: 'text-yellow-600' }
-            };
-
-            ['photoId', 'transcript', 'studyPermit', 'policeCheck'].forEach(docId => {
-                const status = docStatuses[docId] || 'Not Uploaded';
-                const verifiedBy = docStatuses[`${docId}VerifiedBy`] || '';
-                const statusInfo = statusMap[status] || statusMap['Not Uploaded'];
-                
-                const container = document.querySelector(`div[data-doc-id="${docId}"]`);
-                if (container) {
-                    container.className = `flex justify-between items-center p-3 border rounded-lg ${statusInfo.color}`;
-                    
-                    const statusElement = container.querySelector(`[data-status-for="${docId}"]`);
-                    if (statusElement) {
-                         const metadata = status === 'Verified' && verifiedBy ? ` (by ${ADMIN_USER})` : '';
-                         statusElement.innerHTML = `${statusInfo.text} <span class="font-normal text-gray-500">${metadata}</span>`;
-                         statusElement.className = `text-xs font-bold mt-1 ${statusInfo.textColor}`;
-                    }
-                }
-            });
-        }
-        
-        // Function to render the verification status metadata in Step 1
-        function renderVerificationMetadata() {
-            const studentId = getActiveStudentId();
-            const storedData = localStorage.getItem(`student_${studentId}`);
-            const data = storedData ? JSON.parse(storedData) : initializeStudentSpecificRecord(null, true);
-            
-            const fields = {
-                'studentName': 'fullName',
-                'studentEmail': 'email',
-                'studentPhone': 'phone',
-                'studentProgram': 'program',
-                'studentStartDate': 'startDate',
-                'studentCampus': 'campus',
-                'studentBranch': 'branch',
-                'studentAddress': 'address'
-            };
-
-            for (const inputId in fields) {
-                const metadataKey = `${fields[inputId]}VerifiedBy`;
-                const metadata = data.verificationDetails[metadataKey];
-                const statusElement = document.getElementById(`${inputId}-status`);
-                
-                if (statusElement && metadata) {
-                    // Example: Verified by: Enrollment Team / Admin User-001 on 2025-11-26
-                    statusElement.textContent = `Last verified by: ${metadata.split(' on ')[0]} on ${metadata.split(' on ')[1]}`;
-                } else if (statusElement) {
-                     statusElement.textContent = `Awaiting initial verification.`;
-                }
-            }
-        }
-
-
-        // --- REPORTING ROSTER VIEW ---
-        
-        function renderReportingRoster() {
+        // Sets the Active Student Context (used by the Kanban Start Enrollment button)
+        window.setActiveStudent = function(leadId) {
             const leads = getLeads();
-            const rosterBody = document.getElementById('reporting-roster-body');
-            rosterBody.innerHTML = '';
-            
-            // We load the full student record for each lead to get the current enrollment status
-            const allStudents = leads.map(lead => {
-                const studentData = localStorage.getItem(`student_${lead.id}`);
-                const fullRecord = studentData ? JSON.parse(studentData) : initializeStudentSpecificRecord(lead, true);
-                
-                return {
-                    name: fullRecord.verificationDetails.fullName,
-                    program: fullRecord.verificationDetails.program,
-                    branch: fullRecord.verificationDetails.branch,
-                    enrollmentStatus: fullRecord.enrollmentStatus,
-                    id: fullRecord.studentId,
-                    lastAction: fullRecord.verificationDetails.fullNameVerifiedBy ? fullRecord.verificationDetails.fullNameVerifiedBy.split(' on ')[1] : lead.date,
-                };
-            });
+            const lead = leads.find(l => l.id === leadId);
 
-            if (allStudents.length === 0) {
-                 rosterBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">No student records found.</td></tr>`;
-                 return;
+            if (!lead) {
+                showMessage("Error: Lead not found.", true);
+                return;
             }
             
-            const statusColorMap = {
-                'Enrolled': 'bg-green-100 text-green-800',
-                'Graduated': 'bg-indigo-100 text-indigo-800',
-                'Active': 'bg-yellow-100 text-yellow-800',
-                'Lead': 'bg-gray-100 text-gray-800'
-            };
-
-            allStudents.forEach(student => {
-                const statusClass = statusColorMap[student.enrollmentStatus] || 'bg-red-100 text-red-800';
-                
-                const row = `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-3 py-2 font-medium text-gray-900">${student.name}</td>
-                        <td class="px-3 py-2">${student.program} / ${student.branch}</td>
-                        <td class="px-3 py-2">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
-                                ${student.enrollmentStatus.toUpperCase()}
-                            </span>
-                        </td>
-                        <td class="px-3 py-2 text-gray-600">${student.lastAction}</td>
-                        <td class="px-3 py-2 space-x-2">
-                            <button onclick="setActiveStudent('${student.id}')" class="text-indigo-600 hover:text-indigo-800 text-sm">View Profile</button>
-                            <button onclick="alert('Simulating bulk T2202 generation for ${student.name}')" class="text-purple-600 hover:text-purple-800 text-sm" ${student.enrollmentStatus !== 'Enrolled' && student.enrollmentStatus !== 'Graduated' ? 'disabled' : ''}>T2202</button>
-                        </td>
-                    </tr>
-                `;
-                rosterBody.insertAdjacentHTML('beforeend', row);
-            });
-        }
-
-
-        // --- CORE LOGIC: CALCULATIONS (Unchanged) ---
-
-        function calculateTotal() {
-            const tuition = parseFloat(document.getElementById('tuitionFee').value) || 0;
-            const book = parseFloat(document.getElementById('bookFee').value) || 0;
-            const other = parseFloat(document.getElementById('otherFee').value) || 0;
+            // 1. Set the active student ID
+            setActiveStudentContextOnly(leadId);
             
-            const total = tuition + book + other;
-            document.getElementById('totalProgramFees').textContent = `$${total.toFixed(2)}`;
+            // 2. Ensure a full student record exists for this lead ID
+            if (!localStorage.getItem(`student_${leadId}`)) {
+                const initialRecord = initializeStudentSpecificRecord(lead);
+                localStorage.setItem(`student_${leadId}`, JSON.stringify(initialRecord));
+                showMessage(`New record initialized for ${lead.name}.`, false);
+            }
 
-            updateRemainingBalance(total);
+            // 3. Open the consolidated case file modal
+            openCaseFileModal(leadId);
         }
+
+        // Just sets the ID and updates the display bar
+        function setActiveStudentContextOnly(leadId) {
+            localStorage.setItem(CURRENT_STUDENT_ID_KEY, leadId);
+             
+            // Update Active Student Bar in Pipeline view
+            const studentId = getActiveStudentId();
+            const storedData = localStorage.getItem(`student_${studentId}`);
+            const data = storedData ? JSON.parse(storedData) : {};
+            document.getElementById('active-student-name-display').textContent = data.verificationDetails?.fullName || 'N/A';
+            document.getElementById('active-student-bar').classList.remove('hidden');
+        }
+
+        // --- CONSOLIDATED DATA LOADING FOR MODAL ---
         
-        function updateRemainingBalance(totalTuition) {
-            const osapAssessedInput = document.getElementById('osapTotalAssessedFunding');
-            if (!osapAssessedInput) return; 
-
-            const osapAssessed = parseFloat(osapAssessedInput.value) || 0;
-            
-            const remaining = totalTuition - osapAssessed - initialPaymentAmount; 
-            
-            const balanceElement = document.getElementById('osapRemainingBalance');
-            
-            if (balanceElement) {
-                balanceElement.textContent = `$${remaining.toFixed(2)} (Calculated)`;
-                balanceElement.className = remaining > 0 ? 'mt-2 text-lg font-semibold text-red-600' : 'mt-2 text-lg font-semibold text-green-600';
-            }
-        }
-
-        function updateFundingSection(selectedStatus) {
-            const sections = document.querySelectorAll('.funding-section');
-            sections.forEach(section => {
-                section.classList.add('hidden');
-            });
-
-            if (selectedStatus === 'OSAP') {
-                document.getElementById('osap-fields').classList.remove('hidden');
-            } else if (selectedStatus === 'BJO') {
-                document.getElementById('bjo-fields').classList.remove('hidden');
-            } else if (selectedStatus === 'Self-Funded') {
-                document.getElementById('self-funded-fields').classList.remove('hidden');
-            }
-            
-            calculateTotal();
-            // After updating funding section, also update the small profile summary fields
-            updateFinancialProfileSummary();
-        }
-        
-        // Function to update the small profile summary boxes in the Financial tab
-        function updateFinancialProfileSummary() {
+        function loadAllModalData() {
             const studentId = getActiveStudentId();
             const storedData = localStorage.getItem(`student_${studentId}`);
             const data = storedData ? JSON.parse(storedData) : initializeStudentSpecificRecord(null, true);
+            
+            // --- 1. Load Verification/Profile Data (Step 1) ---
+            document.getElementById('modal-studentName').value = data.verificationDetails?.fullName || STUDENT_PROFILE_DATA_TEMPLATE.fullName;
+            document.getElementById('modal-studentEmail').value = data.verificationDetails?.email || STUDENT_PROFILE_DATA_TEMPLATE.email;
+            document.getElementById('modal-studentPhone').value = data.verificationDetails?.phone || STUDENT_PROFILE_DATA_TEMPLATE.phone;
+            document.getElementById('modal-studentProgram').value = data.verificationDetails?.program || STUDENT_PROFILE_DATA_TEMPLATE.program;
+            document.getElementById('modal-studentBranch').value = data.verificationDetails?.branch || STUDENT_PROFILE_DATA_TEMPLATE.branch;
+            document.getElementById('modal-studentAddress').value = data.verificationDetails?.address || STUDENT_PROFILE_DATA_TEMPLATE.address;
 
-            // Update Financial Tab's quick summary boxes
-            document.getElementById('financial-student-name').textContent = data.verificationDetails?.fullName || 'N/A';
-            document.getElementById('financial-student-email').textContent = data.verificationDetails?.email || 'N/A';
-            document.getElementById('financial-student-phone').textContent = data.verificationDetails?.phone || 'N/A';
-            document.getElementById('financial-student-program').textContent = data.verificationDetails?.program || 'N/A';
-            document.getElementById('financial-student-start-date').textContent = data.verificationDetails?.startDate || 'N/A';
-            document.getElementById('studentIdDisplay').textContent = studentId;
+            // Load Metadata Statuses
+            renderVerificationMetadataModal(data);
+            
+            // --- 2. Load Financial Data ---
+            document.getElementById('modal-tuitionFee').value = data.feeBreakdown?.tuitionFee || 0;
+            document.getElementById('modal-bookFee').value = data.feeBreakdown?.bookFee || 0;
+            document.getElementById('modal-otherFee').value = data.feeBreakdown?.otherFee || 0;
+            document.getElementById('modal-eSignatureName').value = ADMIN_USER; // Default to admin user for sign-off
 
+            window.calculateTotalModal(); 
+
+            // --- 3. Load Dynamic Summary ---
+            document.getElementById('modal-profile-name').textContent = data.verificationDetails?.fullName || 'N/A';
+            document.getElementById('modal-summary-program').textContent = data.verificationDetails?.program || 'N/A';
+            document.getElementById('modal-summary-status').textContent = data.enrollmentStatus || 'Lead';
+
+            // --- 4. Load Document Verification (Step 2) ---
+            renderDocumentStatusesModal(data);
+            
+            // --- 5. Load Conditional Funding Fields ---
+            document.getElementById('modal-fundingStatus').value = data.fundingStatus || '';
+            window.updateFundingSectionModal(data.fundingStatus, data);
         }
 
-        // --- CORE LOGIC: DATA HANDLING (localStorage) ---
+        // Function to update the small profile summary boxes in the MODAL
+        function updateFinancialProfileSummaryModal() {
+             const studentId = getActiveStudentId();
+            const storedData = localStorage.getItem(`student_${studentId}`);
+            const data = storedData ? JSON.parse(storedData) : initializeStudentSpecificRecord(null, true);
 
-        window.saveFinancialData = function() {
+            const totalFees = data.feeBreakdown.tuitionFee + data.feeBreakdown.bookFee + data.feeBreakdown.otherFee;
+            let balance = totalFees - (data.osapDetails?.totalAssessedFunding || 0) - initialPaymentAmount;
+
+            if (data.fundingStatus === 'Self-Funded') {
+                balance = totalFees - initialPaymentAmount;
+            } else if (data.fundingStatus === 'BJO' && data.bjoDetails?.totalFunding >= totalFees) {
+                balance = 0;
+            }
+            
+            // Update Modal's quick summary boxes
+            document.getElementById('modal-summary-balance').textContent = `$${Math.max(0, balance).toFixed(2)}`;
+            document.getElementById('modal-summary-status').textContent = data.enrollmentStatus.toUpperCase() || 'N/A';
+            document.getElementById('modal-summary-program').textContent = data.verificationDetails.program || 'N/A';
+            document.getElementById('active-student-name-display').textContent = data.verificationDetails?.fullName || 'N/A';
+        }
+
+        // --- CONSOLIDATED DATA SAVING FOR MODAL ---
+        
+        window.saveCaseFileModalData = function() {
             const studentId = getActiveStudentId();
-            const fundingStatus = document.getElementById('fundingStatus').value;
+            const fundingStatus = document.getElementById('modal-fundingStatus').value;
             if (!fundingStatus) {
                 showMessage("Please select a Primary Funding Status before saving.", true);
                 return;
             }
             
-            // Load existing data first, primarily for document status and verification data
+            // Load existing data first (for documentStatus and enrollmentStatus persistence)
             const existingData = localStorage.getItem(`student_${studentId}`);
             let data = existingData ? JSON.parse(existingData) : initializeStudentSpecificRecord(null, true);
             const verificationLog = `${ADMIN_ROLE} / ${ADMIN_USER} on ${new Date().toISOString().substring(0, 10)}`;
 
-
-            // 1. Collect Verification/Profile Details (from Verification Tab)
-            // Log verification for each field when saving the overall record
-            data.verificationDetails = data.verificationDetails || {};
-
+            // 1. Collect Verification/Profile Details (from Modal)
             const fieldsToVerify = [
-                { inputId: 'studentName', dataKey: 'fullName' },
-                { inputId: 'studentEmail', dataKey: 'email' },
-                { inputId: 'studentPhone', dataKey: 'phone' },
-                { inputId: 'studentProgram', dataKey: 'program' },
-                { inputId: 'studentStartDate', dataKey: 'startDate' },
-                { inputId: 'studentCampus', dataKey: 'campus' },
-                { inputId: 'studentBranch', dataKey: 'branch' },
-                { inputId: 'studentAddress', dataKey: 'address' },
+                { inputId: 'modal-studentName', dataKey: 'fullName' },
+                { inputId: 'modal-studentEmail', dataKey: 'email' },
+                { inputId: 'modal-studentPhone', dataKey: 'phone' },
+                { inputId: 'modal-studentProgram', dataKey: 'program' },
+                { inputId: 'modal-studentBranch', dataKey: 'branch' },
+                { inputId: 'modal-studentAddress', dataKey: 'address' },
             ];
 
             fieldsToVerify.forEach(field => {
@@ -1365,100 +702,38 @@
                     const oldValue = data.verificationDetails[field.dataKey];
                     data.verificationDetails[field.dataKey] = newValue;
                     
-                    // Only update verification log if the value has changed
                     if (newValue !== oldValue || !data.verificationDetails[`${field.dataKey}VerifiedBy`]) {
                          data.verificationDetails[`${field.dataKey}VerifiedBy`] = verificationLog;
                     }
                 }
             });
             
-            // 2. Collect Universal and Fee Data
-            const tuitionFee = parseFloat(document.getElementById('tuitionFee').value) || 0;
-            const bookFee = parseFloat(document.getElementById('bookFee').value) || 0;
-            const otherFee = parseFloat(document.getElementById('otherFee').value) || 0;
-            const totalProgramFees = tuitionFee + bookFee + otherFee;
-
-            // 3. Collect Financial Data
-            data.totalProgramFees = totalProgramFees;
-            data.feeBreakdown = { tuitionFee, bookFee, otherFee };
-            data.initialPayment = {
-                amount: initialPaymentAmount,
-                method: document.getElementById('initialPaymentMethod').value,
-                date: document.getElementById('initialPaymentDate').value,
+            // 2. Collect Financial Data
+            data.feeBreakdown = { 
+                tuitionFee: parseFloat(document.getElementById('modal-tuitionFee').value) || 0,
+                bookFee: parseFloat(document.getElementById('modal-bookFee').value) || 0,
+                otherFee: parseFloat(document.getElementById('modal-otherFee').value) || 0
             };
+            data.totalProgramFees = data.feeBreakdown.tuitionFee + data.feeBreakdown.bookFee + data.feeBreakdown.otherFee;
             data.fundingStatus = fundingStatus;
-            
-            // 4. Collect Agent Data
-            data.agentDetails = {
-                agentId: document.getElementById('agentId').value,
-                agentName: document.getElementById('agentName').value,
-                commissionStatus: document.getElementById('commissionStatus').value
-            };
 
-            // 5. Collect Agreement Status
-            data.credentials = {
-                idConfirmed: document.getElementById('idConfirmed').checked,
-                offerConfirmed: document.getElementById('offerConfirmed').checked,
-                visaConfirmed: document.getElementById('visaConfirmed').checked,
-                academicConfirmed: document.getElementById('academicConfirmed').checked,
-            };
-            data.contractSigned = true; 
-            data.eSignatureName = document.getElementById('eSignatureName').value;
-            data.dateSigned = document.getElementById('dateSigned').value;
-            
-            // NOTE: enrollmentStatus is managed manually for this presentation, but we save the existing value
-            // data.enrollmentStatus remains the same unless explicitly updated elsewhere
-
-            // 7. Collect Conditional Funding Data (unchanged)
-            if (fundingStatus === 'OSAP') {
-                const osapDisbursementRows = document.querySelectorAll('#osap-disbursement-table tr');
-                const disbursements = Array.from(osapDisbursementRows).map(row => ({
-                    installment: row.cells[0].textContent,
-                    amount: parseFloat(row.cells[1].textContent.replace(/[^0-9.]/g, '')) || 0,
-                    coeDate: row.querySelector('input[type="date"]:nth-child(1)').value,
-                    releaseDate: row.querySelector('input[type="date"]:nth-child(2)').value,
-                    status: row.querySelector('span').textContent,
-                }));
-
-                data.osapDetails = {
-                    applicationStatus: document.getElementById('osapApplicationStatus').value,
-                    totalAssessedFunding: parseFloat(document.getElementById('osapTotalAssessedFunding').value) || 0,
-                    disbursements: disbursements,
-                };
-                delete data.bjoDetails;
-                delete data.selfFundedDetails;
-
-            } else if (fundingStatus === 'BJO') {
-                data.bjoDetails = {
-                    applicationStatus: document.getElementById('bjoApplicationStatus').value,
-                    totalFunding: parseFloat(document.getElementById('bjoTotalFunding').value) || 0,
-                    caseManager: document.getElementById('bjoCaseManager').value,
-                    paymentDetails: document.getElementById('bjoPaymentDetails').value,
-                };
-                delete data.osapDetails;
-                delete data.selfFundedDetails;
-
-            } else if (fundingStatus === 'Self-Funded') {
-                data.selfFundedDetails = {
-                    paymentPlanType: document.getElementById('sfPaymentPlanType').value,
-                    nextPaymentDate: document.getElementById('sfNextPaymentDate').value,
-                    totalDueCycle: parseFloat(document.getElementById('sfTotalDueCycle').value) || 0,
-                    collectionStatus: document.getElementById('sfPaymentCollectionStatus').value,
-                    notes: document.getElementById('sfNotesOnPayment').value,
-                };
-                delete data.osapDetails;
-                delete data.bjoDetails;
+            // 3. Update Enrollment Status (Placeholder logic: if documents are verified, status becomes 'Active')
+            const docs = data.documentStatus || {};
+            const requiredDocs = ['photoId', 'transcript'];
+            const allVerified = requiredDocs.every(doc => docs[doc] === 'Verified');
+            if (data.enrollmentStatus === 'Lead' && allVerified) {
+                data.enrollmentStatus = 'Active';
             }
             
-            // 8. Save to localStorage
+            // 4. Save to localStorage
             try {
                 localStorage.setItem(`student_${studentId}`, JSON.stringify(data));
-                showMessage("Success! All Data Saved to Browser Storage.", false);
+                showMessage(`Success! Case File for ${data.verificationDetails.fullName} Saved. Status: ${data.enrollmentStatus}.`, false);
                 
-                // Refresh dynamic views
-                renderVerificationMetadata(); 
-                updateFinancialProfileSummary();
-                window.renderProfileData();
+                // Close modal and refresh pipeline view
+                window.closeCaseFileModal();
+                window.renderKanbanPipeline();
+                
             } catch (error) {
                 console.error("Error saving document to localStorage:", error);
                 showMessage("Error saving data: Browser storage failed.", true);
@@ -1466,136 +741,242 @@
         }
 
 
-        function renderOsapTable(disbursements) {
-            const tableBody = document.getElementById('osap-disbursement-table');
-            tableBody.innerHTML = ''; 
+        // --- MODAL SPECIFIC UTILITY FUNCTIONS ---
+        
+        window.calculateTotalModal = function() {
+            const tuition = parseFloat(document.getElementById('modal-tuitionFee').value) || 0;
+            const book = parseFloat(document.getElementById('modal-bookFee').value) || 0;
+            const other = parseFloat(document.getElementById('modal-otherFee').value) || 0;
+            
+            const total = tuition + book + other;
+            document.getElementById('modal-totalProgramFees').textContent = `$${total.toFixed(2)}`;
 
-            const dataToRender = disbursements && disbursements.length > 0 ? disbursements : DEFAULT_OSAP_DISBURSEMENTS;
+            // Also update the remaining balance within the OSAP section if visible
+            const osapInput = document.getElementById('modal-osapTotalAssessedFunding');
+            const osapBalanceElement = document.getElementById('modal-osapRemainingBalance');
+            if (osapInput && osapBalanceElement) {
+                const osapAssessed = parseFloat(osapInput.value) || 0;
+                const remaining = total - osapAssessed - initialPaymentAmount; 
+                osapBalanceElement.textContent = `$${remaining.toFixed(2)} (Calculated)`;
+                osapBalanceElement.className = remaining > 0 ? 'mt-2 text-lg font-semibold text-red-600' : 'mt-2 text-lg font-semibold text-green-600';
+            }
 
-            dataToRender.forEach(item => {
-                const statusColor = item.status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
-                
-                const row = `
-                    <tr class="hover:bg-blue-50">
-                        <td class="px-3 py-2 font-medium text-gray-900">${item.installment}</td>
-                        <td class="px-3 py-2">${parseFloat(item.amount).toFixed(2)}</td>
-                        <td class="px-3 py-2">
-                            <input type="date" value="${item.coeDate || ''}" class="w-32 border-gray-300 rounded-md p-1">
-                        </td>
-                        <td class="px-3 py-2">
-                            <input type="date" value="${item.releaseDate || ''}" class="w-32 border-gray-300 rounded-md p-1">
-                        </td>
-                        <td class="px-3 py-2">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">${item.status}</span>
-                        </td>
-                    </tr>
-                `;
-                tableBody.insertAdjacentHTML('beforeend', row);
-            });
+            window.updateFinancialProfileSummaryModal();
         }
 
-        window.loadFinancialData = function() {
-            const studentId = getActiveStudentId();
-            const storedData = localStorage.getItem(`student_${studentId}`);
+        // Renders the verification metadata below the input fields in the modal
+        function renderVerificationMetadataModal(data) {
+            const fields = {
+                'modal-studentName': 'fullName',
+                'modal-studentEmail': 'email',
+                'modal-studentPhone': 'phone',
+                'modal-studentProgram': 'program',
+                'modal-studentBranch': 'branch',
+                'modal-studentAddress': 'address',
+            };
 
-            if (storedData) {
-                try {
-                    const data = JSON.parse(storedData);
-
-                    // --- 1. Load Universal & Fee Data ---
-                    document.getElementById('tuitionFee').value = data.feeBreakdown?.tuitionFee || 0;
-                    document.getElementById('bookFee').value = data.feeBreakdown?.bookFee || 0;
-                    document.getElementById('otherFee').value = data.feeBreakdown?.otherFee || 0;
-                    window.calculateTotal(); 
-
-                    // --- 2. Load Initial Payment ---
-                    document.getElementById('initialPaymentMethod').value = data.initialPayment?.method || 'Credit/Debit Card';
-                    document.getElementById('initialPaymentDate').value = data.initialPayment?.date || '';
-                    
-                    // --- 3. Load Agreement Status Checklist ---
-                    document.getElementById('idConfirmed').checked = data.credentials?.idConfirmed || false;
-                    document.getElementById('offerConfirmed').checked = data.credentials?.offerConfirmed || false;
-                    document.getElementById('visaConfirmed').checked = data.credentials?.visaConfirmed || false;
-                    document.getElementById('academicConfirmed').checked = data.credentials?.academicConfirmed || false;
-
-                    document.getElementById('eSignatureName').value = data.eSignatureName || STUDENT_PROFILE_DATA_TEMPLATE.fullName;
-                    document.getElementById('dateSigned').value = data.dateSigned || '';
-                    
-                    // --- 4. Load Agent Data ---
-                    document.getElementById('agentId').value = data.agentDetails?.agentId || '';
-                    document.getElementById('agentName').value = data.agentDetails?.agentName || '';
-                    document.getElementById('commissionStatus').value = data.agentDetails?.commissionStatus || 'Pending Enrollment';
-
-
-                    // --- 5. Load Funding Status and Conditional Data ---
-                    document.getElementById('fundingStatus').value = data.fundingStatus || '';
-
-                    if (data.fundingStatus === 'OSAP') {
-                        document.getElementById('osapApplicationStatus').value = data.osapDetails?.applicationStatus || 'Assessment Complete';
-                        document.getElementById('osapTotalAssessedFunding').value = data.osapDetails?.totalAssessedFunding || 0;
-                        renderOsapTable(data.osapDetails?.disbursements);
-                        
-                    } else if (data.fundingStatus === 'BJO') {
-                        document.getElementById('bjoApplicationStatus').value = data.bjoDetails?.applicationStatus || 'Ministry Approved';
-                        document.getElementById('bjoTotalFunding').value = data.bjoDetails?.totalFunding || 0;
-                        document.getElementById('bjoCaseManager').value = data.bjoDetails?.caseManager || '';
-                        document.getElementById('bjoPaymentDetails').value = data.bjoDetails?.paymentDetails || '';
-
-                    } else if (data.fundingStatus === 'Self-Funded') {
-                        document.getElementById('sfPaymentPlanType').value = data.selfFundedDetails?.paymentPlanType || 'Monthly Plan (10 Installments)';
-                        document.getElementById('sfNextPaymentDate').value = data.selfFundedDetails?.nextPaymentDate || '';
-                        document.getElementById('sfTotalDueCycle').value = data.selfFundedDetails?.totalDueCycle || 0;
-                        document.getElementById('sfPaymentCollectionStatus').value = data.selfFundedDetails?.collectionStatus || 'Pending';
-                        document.getElementById('sfNotesOnPayment').value = data.selfFundedDetails?.notes || '';
-                    }
-
-                    window.updateFundingSection(data.fundingStatus);
-                    updateFinancialProfileSummary(); // Update quick summary fields
-                    renderVerificationMetadata(); // Update verification log in step 1 of Verification tab
-
-                } catch (error) {
-                    console.error("Error parsing stored data:", error);
-                    showMessage("Error loading stored data. Initializing new record.", true);
-                    initializeStudentSpecificRecord(null, false);
+            for (const inputId in fields) {
+                const metadataKey = `${fields[inputId]}VerifiedBy`;
+                const metadata = data.verificationDetails[metadataKey];
+                const statusElement = document.getElementById(`${inputId}-status`);
+                
+                if (statusElement && metadata) {
+                    statusElement.textContent = `Last verified by: ${metadata.split(' on ')[0]} on ${metadata.split(' on ')[1]}`;
+                } else if (statusElement) {
+                     statusElement.textContent = `Awaiting initial verification.`;
                 }
-            } else {
-                initializeStudentSpecificRecord(null, false);
             }
         }
 
-        // --- LOAD/SAVE VERIFICATION DATA ---
-        window.loadVerificationData = function() {
+        // Renders the interactive document list in the modal
+        function renderDocumentStatusesModal(data) {
+            const docStatuses = data.documentStatus || {};
+            const docList = document.getElementById('modal-document-list');
+            docList.innerHTML = ''; // Clear previous
+
+            const statusMap = {
+                'Verified': { color: 'bg-green-50 border-green-200', text: 'Status: Verified', textColor: 'text-green-600' },
+                'Not Uploaded': { color: 'bg-red-50 border-red-200', text: 'Status: Not Uploaded', textColor: 'text-red-500' },
+                'Review Pending': { color: 'bg-yellow-50 border-yellow-200', text: 'Status: Review Pending', textColor: 'text-yellow-600' }
+            };
+
+            const docTypes = [
+                { id: 'photoId', name: 'Government-Issued Photo ID' },
+                { id: 'transcript', name: 'High School Transcript' },
+                { id: 'studyPermit', name: 'Study Permit/Visa (If International)' },
+                { id: 'policeCheck', name: 'Police Check / Criminal Record Check' }
+            ];
+
+            docTypes.forEach(doc => {
+                const status = docStatuses[doc.id] || 'Not Uploaded';
+                const verifiedBy = docStatuses[`${doc.id}VerifiedBy`] || '';
+                const statusInfo = statusMap[status] || statusMap['Not Uploaded'];
+                
+                const metadata = status === 'Verified' && verifiedBy ? ` (by ${ADMIN_USER})` : '';
+
+                const docHtml = `
+                     <div class="flex justify-between items-center p-3 border rounded-lg ${statusInfo.color}" data-doc-id="${doc.id}">
+                        <div>
+                            <p class="font-medium text-gray-700">${doc.name}</p>
+                            <p class="text-xs font-bold mt-1 ${statusInfo.textColor}">${statusInfo.text} <span class="font-normal text-gray-500">${metadata}</span></p>
+                        </div>
+                        <div class="space-x-2">
+                            <button type="button" onclick="window.verifyDocumentModal('${doc.id}', 'Verified')" class="bg-green-500 text-white px-3 py-1 text-sm rounded-md hover:bg-green-600">Verify Document</button>
+                            <button type="button" onclick="window.verifyDocumentModal('${doc.id}', 'Not Uploaded')" class="bg-red-500 text-white px-3 py-1 text-sm rounded-md hover:bg-red-600">Reset Status</button>
+                        </div>
+                    </div>
+                `;
+                docList.insertAdjacentHTML('beforeend', docHtml);
+            });
+        }
+        
+        // Modal-specific wrapper for document verification
+        window.verifyDocumentModal = function(docId, newStatus) {
             const studentId = getActiveStudentId();
             const storedData = localStorage.getItem(`student_${studentId}`);
-            const data = storedData ? JSON.parse(storedData) : initializeStudentSpecificRecord(null, true);
+            let data = storedData ? JSON.parse(storedData) : initializeStudentSpecificRecord(null, true);
             
-            // Load Step 1: Details (using full verification details structure)
-            document.getElementById('studentName').value = data.verificationDetails?.fullName || STUDENT_PROFILE_DATA_TEMPLATE.fullName;
-            document.getElementById('studentEmail').value = data.verificationDetails?.email || STUDENT_PROFILE_DATA_TEMPLATE.email;
-            document.getElementById('studentPhone').value = data.verificationDetails?.phone || STUDENT_PROFILE_DATA_TEMPLATE.phone;
-            document.getElementById('studentProgram').value = data.verificationDetails?.program || STUDENT_PROFILE_DATA_TEMPLATE.program;
-            document.getElementById('studentStartDate').value = data.verificationDetails?.startDate || STUDENT_PROFILE_DATA_TEMPLATE.startDate;
-            document.getElementById('studentCampus').value = data.verificationDetails?.campus || STUDENT_PROFILE_DATA_TEMPLATE.campus;
-            document.getElementById('studentBranch').value = data.verificationDetails?.branch || STUDENT_PROFILE_DATA_TEMPLATE.branch;
-            document.getElementById('studentAddress').value = data.verificationDetails?.address || STUDENT_PROFILE_DATA_TEMPLATE.address;
-
-
-            // Render Verification Metadata
-            renderVerificationMetadata();
-
-            // Render Step 2: Documents
-            renderDocumentStatuses();
+            data.documentStatus[docId] = newStatus;
+            data.documentStatus[`${docId}VerifiedBy`] = `${ADMIN_ROLE} / ${ADMIN_USER} on ${new Date().toISOString().substring(0, 10)}`;
+            
+            try {
+                localStorage.setItem(`student_${studentId}`, JSON.stringify(data));
+                renderDocumentStatusesModal(data);
+                showMessage(`Document ${docId} status updated to: ${newStatus}.`, false);
+            } catch (error) {
+                showMessage("Error saving document status.", true);
+            }
         }
+        
+        // Renders the OSAP/BJO/Self-Funded section based on selection
+        window.updateFundingSectionModal = function(selectedStatus, data = null) {
+            const container = document.getElementById('modal-conditional-funding-fields');
+            container.innerHTML = '';
+            
+            const studentId = getActiveStudentId();
+            const storedData = data || (studentId ? JSON.parse(localStorage.getItem(`student_${studentId}`)) : initializeStudentSpecificRecord(null, true));
+
+            let html = '';
+            
+            if (selectedStatus === 'OSAP') {
+                 html = `
+                    <div id="osap-fields" class="funding-section p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                        <h3 class="text-lg font-bold text-blue-700 mb-4 border-b border-blue-300 pb-2">OSAP Details (Loan & Grant Tracking)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">OSAP Application Status</label>
+                                <select id="modal-osapApplicationStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                                    <option>Required Docs Submitted</option>
+                                    <option>Assessment Complete</option>
+                                    <option>Funding Released</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">OSAP Total Assessed Funding ($)</label>
+                                <input type="number" id="modal-osapTotalAssessedFunding" value="${(storedData.osapDetails?.totalAssessedFunding || 0).toFixed(2)}" oninput="window.calculateTotalModal()" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-white font-semibold" placeholder="e.g., 9800.00">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">Remaining Balance (Self-Pay)</label>
+                                <p class="mt-2 text-lg font-semibold text-red-600" id="modal-osapRemainingBalance">$4,700.00 (Calculated)</p>
+                            </div>
+                        </div>
+                        <!-- Disbursement Table - Simplified for Modal Demo -->
+                        <h4 class="text-md font-semibold text-blue-600 mb-3">Disbursement Schedule</h4>
+                        <p class="text-sm">Installment 1: $5,880.00 (Paid) | Installment 2: $3,920.00 (Pending COE)</p>
+                    </div>`;
+                 // Update fields from loaded data
+                 setTimeout(() => { 
+                    document.getElementById('modal-osapApplicationStatus').value = storedData.osapDetails?.applicationStatus || 'Assessment Complete';
+                 }, 0);
+            } else if (selectedStatus === 'BJO') {
+                html = `
+                    <div id="bjo-fields" class="funding-section p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <h3 class="text-lg font-bold text-yellow-700 mb-4 border-b border-yellow-300 pb-2">Better Jobs Ontario (BJO) Details</h3>
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">BJO Application Status</label>
+                                <select id="modal-bjoApplicationStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                                    <option>Case Manager Assigned</option>
+                                    <option>Ministry Approved</option>
+                                    <option>Funding Confirmed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Total BJO Funding Amount ($)</label>
+                                <input type="number" id="modal-bjoTotalFunding" value="${(storedData.bjoDetails?.totalFunding || 0).toFixed(2)}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-white" placeholder="e.g., 12500.00">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">EO Case Manager Name & Contact</label>
+                                <input type="text" id="modal-bjoCaseManager" value="${storedData.bjoDetails?.caseManager || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" placeholder="Name and contact details">
+                            </div>
+                        </div>
+                    </div>`;
+                setTimeout(() => { 
+                    document.getElementById('modal-bjoApplicationStatus').value = storedData.bjoDetails?.applicationStatus || 'Ministry Approved';
+                 }, 0);
+            } else if (selectedStatus === 'Self-Funded') {
+                html = `
+                    <div id="self-funded-fields" class="funding-section p-6 bg-green-50 border border-green-200 rounded-lg">
+                        <h3 class="text-lg font-bold text-green-700 mb-4 border-b border-green-300 pb-2">Self-Funded Details</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Payment Plan Type</label>
+                                <select id="modal-sfPaymentPlanType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                                    <option>Full Payment</option>
+                                    <option>Monthly Plan (10 Installments)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="modal-sfNextPaymentDate" class="block text-sm font-medium text-gray-700">Next Payment Due Date</label>
+                                <input type="date" id="modal-sfNextPaymentDate" value="${storedData.selfFundedDetails?.nextPaymentDate || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">Notes on Payment</label>
+                                <textarea rows="2" id="modal-sfNotesOnPayment" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">${storedData.selfFundedDetails?.notes || ''}</textarea>
+                            </div>
+                        </div>
+                    </div>`;
+                setTimeout(() => { 
+                    document.getElementById('modal-sfPaymentPlanType').value = storedData.selfFundedDetails?.paymentPlanType || 'Monthly Plan (10 Installments)';
+                 }, 0);
+            }
+            
+            container.insertAdjacentHTML('beforeend', html);
+            window.updateFinancialProfileSummaryModal();
+        }
+
+        // --- CORE LOGIC: DATA HANDLING (localStorage) ---
+        
+        window.calculateTotalModal = function() {
+            const tuition = parseFloat(document.getElementById('modal-tuitionFee').value) || 0;
+            const book = parseFloat(document.getElementById('modal-bookFee').value) || 0;
+            const other = parseFloat(document.getElementById('modal-otherFee').value) || 0;
+            
+            const total = tuition + book + other;
+            document.getElementById('modal-totalProgramFees').textContent = `$${total.toFixed(2)}`;
+
+            // Also update the remaining balance within the OSAP section if visible
+            const osapInput = document.getElementById('modal-osapTotalAssessedFunding');
+            const osapBalanceElement = document.getElementById('modal-osapRemainingBalance');
+            if (osapInput && osapBalanceElement) {
+                const osapAssessed = parseFloat(osapInput.value) || 0;
+                const remaining = total - osapAssessed - initialPaymentAmount; 
+                osapBalanceElement.textContent = `$${remaining.toFixed(2)} (Calculated)`;
+                osapBalanceElement.className = remaining > 0 ? 'mt-2 text-lg font-semibold text-red-600' : 'mt-2 text-lg font-semibold text-green-600';
+            }
+
+            window.updateFinancialProfileSummaryModal();
+        }
+        
         
         function initializeStudentSpecificRecord(lead, silent = false) {
             const initialLog = `Student Self-Report on ${new Date().toISOString().substring(0, 10)}`;
             
-            // Use lead data if available, otherwise use default template
             const profile = lead || STUDENT_PROFILE_DATA_TEMPLATE;
 
             const data = {
                  studentId: lead ? lead.id : DEFAULT_STUDENT_ID,
-                 enrollmentStatus: lead ? (lead.enrollmentStatus || 'Lead') : 'Lead', // Use lead status if available
+                 enrollmentStatus: lead ? (lead.enrollmentStatus || 'Lead') : 'Lead', 
                  verificationDetails: {
                     fullName: profile.name || profile.fullName,
                     fullNameVerifiedBy: initialLog,
@@ -1619,59 +1000,27 @@
                  osapDetails: { totalAssessedFunding: 9800.00, applicationStatus: 'Assessment Complete', disbursements: DEFAULT_OSAP_DISBURSEMENTS },
                  credentials: { idConfirmed: false, offerConfirmed: false, visaConfirmed: false, academicConfirmed: false },
                  agentDetails: { agentId: lead ? lead.agent : 'AG-101', agentName: lead ? lead.agent : 'Jane Doe', commissionStatus: 'Pending Enrollment' },
-                 documentStatus: { 
-                    photoId: 'Not Uploaded', 
-                    transcript: 'Not Uploaded', 
-                    studyPermit: 'Not Uploaded',
-                    policeCheck: 'Not Uploaded', 
-                 }, 
+                 documentStatus: { photoId: 'Not Uploaded', transcript: 'Not Uploaded', studyPermit: 'Not Uploaded', policeCheck: 'Not Uploaded' }, 
                  eSignatureName: profile.name || profile.fullName,
                  dateSigned: new Date().toISOString().substring(0, 10),
                  initialPayment: { amount: initialPaymentAmount, method: 'Credit/Debit Card', date: '' }
             };
-            
-            // This function is primarily for the financial view, so we populate the form fields directly only if running interactively.
-            if (!silent && lead === null) {
-                // Only initialize the form fields if we are creating the first default record
-                document.getElementById('tuitionFee').value = data.feeBreakdown.tuitionFee;
-                document.getElementById('bookFee').value = data.feeBreakdown.bookFee;
-                document.getElementById('otherFee').value = data.feeBreakdown.otherFee;
-                document.getElementById('fundingStatus').value = data.fundingStatus;
-                document.getElementById('eSignatureName').value = data.eSignatureName;
-                document.getElementById('dateSigned').value = data.dateSigned;
-                document.getElementById('osapTotalAssessedFunding').value = data.osapDetails.totalAssessedFunding;
-                document.getElementById('osapApplicationStatus').value = data.osapDetails.applicationStatus;
-                document.getElementById('agentId').value = data.agentDetails.agentId;
-                document.getElementById('agentName').value = data.agentDetails.agentName;
-                document.getElementById('commissionStatus').value = data.agentDetails.commissionStatus;
-
-                // Populate Checkboxes (Credentials section of Financial tab)
-                document.getElementById('idConfirmed').checked = data.credentials.idConfirmed;
-                document.getElementById('offerConfirmed').checked = data.credentials.offerConfirmed;
-                document.getElementById('visaConfirmed').checked = data.credentials.visaConfirmed;
-                document.getElementById('academicConfirmed').checked = data.credentials.academicConfirmed;
-
-                renderOsapTable(data.osapDetails.disbursements);
-                window.updateFundingSection('OSAP');
-                window.calculateTotal();
-            }
             
             // Save initial record to localStorage
             if (!localStorage.getItem(`student_${data.studentId}`)) {
                  localStorage.setItem(`student_${data.studentId}`, JSON.stringify(data));
             }
 
-            // Return dummy structure for summary rendering
             return data;
         }
 
         // --- LEAD MANAGEMENT ---
         
-        function openNewLeadModal() {
+        window.openNewLeadModal = function() {
             document.getElementById('new-lead-modal').style.display = 'block';
         }
 
-        function closeNewLeadModal() {
+        window.closeNewLeadModal = function() {
             document.getElementById('new-lead-modal').style.display = 'none';
             document.getElementById('new-lead-form').reset();
         }
@@ -1694,34 +1043,23 @@
             const leadId = `student_${Date.now()}`; // Unique ID
 
             const newLead = {
-                id: leadId,
-                name: name,
-                program: program,
-                status: "New Inquiries", // Default Kanban status
-                enrollmentStatus: "Lead", // Default enrollment status
-                agent: agent,
-                source: source,
-                date: new Date().toISOString().substring(0, 10),
-                email: email,
-                phone: phone,
-                branch: branch,
-                address: address
+                id: leadId, name: name, program: program, status: "New Inquiries", enrollmentStatus: "Lead",
+                agent: agent, source: source, date: new Date().toISOString().substring(0, 10),
+                email: email, phone: phone, branch: branch, address: address
             };
 
             const storedLeads = localStorage.getItem(LEADS_STORAGE_KEY);
             let leads = storedLeads ? JSON.parse(storedLeads) : [];
 
-            // Prevent duplicate creation if somehow triggered multiple times fast
             if (!leads.find(l => l.id === newLead.id)) {
                 leads.push(newLead);
                 localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(leads));
                 
-                // Also initialize the full student record structure in local storage
                 initializeStudentSpecificRecord(newLead, true);
             }
 
-            closeNewLeadModal();
-            renderKanbanPipeline();
+            window.closeNewLeadModal();
+            window.renderKanbanPipeline();
             showMessage(`New Lead: ${name} added to New Inquiries (Agent: ${agent}).`, false);
         }
         
@@ -1730,17 +1068,14 @@
             if (storedLeads) {
                 return JSON.parse(storedLeads);
             }
-            // Initialize with dummy data if nothing exists
             localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(INITIAL_LEADS));
             
-            // Also initialize the full student records for the dummy leads
             INITIAL_LEADS.forEach(lead => {
                 initializeStudentSpecificRecord(lead, true);
             });
             return INITIAL_LEADS;
         }
         
-        // Function to check document verification status for Kanban badge
         function getVerificationStatusBadge(studentId) {
             const storedData = localStorage.getItem(`student_${studentId}`);
             if (!storedData) return '';
@@ -1748,7 +1083,6 @@
             const data = JSON.parse(storedData);
             const docs = data.documentStatus || {};
             
-            // Check only Photo ID and Transcript for a basic "ready" status for presentation
             const requiredDocs = ['photoId', 'transcript'];
             const allVerified = requiredDocs.every(doc => docs[doc] === 'Verified');
 
@@ -1758,7 +1092,6 @@
             return '';
         }
         
-        // New function to open the details modal
         window.openStudentDetailsModal = function(leadId) {
             const leads = getLeads();
             const lead = leads.find(l => l.id === leadId);
@@ -1768,7 +1101,6 @@
                 return;
             }
 
-            // Populate the modal fields
             document.getElementById('detail-card-name').textContent = lead.name;
             document.getElementById('detail-card-status').textContent = lead.status;
             document.getElementById('detail-card-program').textContent = lead.program;
@@ -1779,12 +1111,11 @@
             document.getElementById('student-detail-modal').style.display = 'block';
         }
 
-        // New function to close the details modal
         window.closeStudentDetailsModal = function() {
             document.getElementById('student-detail-modal').style.display = 'none';
         }
         
-        function renderKanbanPipeline() {
+        window.renderKanbanPipeline = function() {
             const leads = getLeads();
             const container = document.getElementById('pipeline-kanban');
             container.innerHTML = '';
@@ -1811,8 +1142,8 @@
                             <p class="text-xs text-gray-500">Program: ${lead.program}</p>
                             <p class="text-xs text-indigo-500 mt-1">Agent: ${lead.agent || 'N/A'}</p>
                             <div class="flex justify-between mt-2">
-                                <button onclick="openStudentDetailsModal('${lead.id}')" class="text-sm text-indigo-500 hover:text-indigo-700">☰ Details</button>
-                                <button onclick="setActiveStudent('${lead.id}')" class="text-xs bg-indigo-600 text-white px-2 py-1 rounded-md hover:bg-indigo-700">Start Enrollment</button>
+                                <button onclick="window.openStudentDetailsModal('${lead.id}')" class="text-sm text-indigo-500 hover:text-indigo-700">☰ Details</button>
+                                <button onclick="window.setActiveStudent('${lead.id}')" class="text-xs bg-indigo-600 text-white px-2 py-1 rounded-md hover:bg-indigo-700">Start Enrollment</button>
                             </div>
                         </div>
                     `;
@@ -1829,7 +1160,789 @@
         }
 
 
-        // --- INITIALIZATION ---
+        // --- REPORTING ROSTER VIEW (Unchanged) ---
+        
+        window.applyRosterFilters = function() {
+            const leads = getLeads();
+            const rosterBody = document.getElementById('reporting-roster-body');
+            rosterBody.innerHTML = '';
+            
+            const filterStatus = document.getElementById('filterStatus').value;
+            const filterProgram = document.getElementById('filterProgram').value;
+            const filterBranch = document.getElementById('filterBranch').value;
+            
+            const allStudents = leads.map(lead => {
+                const studentData = localStorage.getItem(`student_${lead.id}`);
+                const fullRecord = studentData ? JSON.parse(studentData) : initializeStudentSpecificRecord(lead, true);
+                
+                return {
+                    name: fullRecord.verificationDetails.fullName,
+                    program: fullRecord.verificationDetails.program,
+                    branch: fullRecord.verificationDetails.branch,
+                    enrollmentStatus: fullRecord.enrollmentStatus,
+                    id: fullRecord.studentId,
+                    lastAction: fullRecord.verificationDetails.fullNameVerifiedBy ? fullRecord.verificationDetails.fullNameVerifiedBy.split(' on ')[1] : lead.date,
+                };
+            });
+            
+            const filteredStudents = allStudents.filter(student => {
+                let statusMatch;
+                if (filterStatus === 'Enrolled/Graduated') {
+                    statusMatch = ['Enrolled', 'Graduated'].includes(student.enrollmentStatus);
+                } else {
+                    statusMatch = filterStatus === 'All' || student.enrollmentStatus === filterStatus;
+                }
+                
+                const programMatch = filterProgram === 'All' || student.program === filterProgram;
+                const branchMatch = filterBranch === 'All' || student.branch === filterBranch;
+                
+                return statusMatch && programMatch && branchMatch;
+            });
+            
+            if (filteredStudents.length === 0) {
+                 rosterBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">No student records match the current filters.</td></tr>`;
+                 return;
+            }
+            
+            const statusColorMap = {
+                'Enrolled': 'bg-green-100 text-green-800',
+                'Graduated': 'bg-indigo-100 text-indigo-800',
+                'Active': 'bg-yellow-100 text-yellow-800',
+                'Lead': 'bg-gray-100 text-gray-800'
+            };
+
+            filteredStudents.forEach(student => {
+                const statusClass = statusColorMap[student.enrollmentStatus] || 'bg-red-100 text-red-800';
+                const isReportable = ['Enrolled', 'Graduated'].includes(student.enrollmentStatus);
+                
+                const row = `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-3 py-2 font-medium text-gray-900">${student.name}</td>
+                        <td class="px-3 py-2">${student.program} / ${student.branch}</td>
+                        <td class="px-3 py-2">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                ${student.enrollmentStatus.toUpperCase()}
+                            </span>
+                        </td>
+                        <td class="px-3 py-2 text-gray-600">${student.lastAction}</td>
+                        <td class="px-3 py-2 space-x-2">
+                            <button onclick="window.setActiveStudent('${student.id}')" class="text-indigo-600 hover:text-indigo-800 text-sm">View Profile</button>
+                            <button onclick="alert('Simulating T2202 generation for ${student.name}')" class="text-purple-600 hover:text-purple-800 text-sm" ${!isReportable ? 'disabled' : ''}>T2202</button>
+                        </td>
+                    </tr>
+                `;
+                rosterBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+        
+        function renderReportingRoster() {
+            window.applyRosterFilters();
+        }
+
+
+        // --- CORE LOGIC: CALCULATIONS (Unchanged) ---
+        
+        window.calculateTotalModal = function() {
+            const tuition = parseFloat(document.getElementById('modal-tuitionFee').value) || 0;
+            const book = parseFloat(document.getElementById('modal-bookFee').value) || 0;
+            const other = parseFloat(document.getElementById('modal-otherFee').value) || 0;
+            
+            const total = tuition + book + other;
+            document.getElementById('modal-totalProgramFees').textContent = `$${total.toFixed(2)}`;
+
+            // Also update the remaining balance within the OSAP section if visible
+            const osapInput = document.getElementById('modal-osapTotalAssessedFunding');
+            const osapBalanceElement = document.getElementById('modal-osapRemainingBalance');
+            if (osapInput && osapBalanceElement) {
+                const osapAssessed = parseFloat(osapInput.value) || 0;
+                const remaining = total - osapAssessed - initialPaymentAmount; 
+                osapBalanceElement.textContent = `$${remaining.toFixed(2)} (Calculated)`;
+                osapBalanceElement.className = remaining > 0 ? 'mt-2 text-lg font-semibold text-red-600' : 'mt-2 text-lg font-semibold text-green-600';
+            }
+
+            window.updateFinancialProfileSummaryModal();
+        }
+
+        // Renders the verification metadata below the input fields in the modal
+        function renderVerificationMetadataModal(data) {
+            const fields = {
+                'modal-studentName': 'fullName',
+                'modal-studentEmail': 'email',
+                'modal-studentPhone': 'phone',
+                'modal-studentProgram': 'program',
+                'modal-studentBranch': 'branch',
+                'modal-studentAddress': 'address',
+            };
+
+            for (const inputId in fields) {
+                const metadataKey = `${fields[inputId]}VerifiedBy`;
+                const metadata = data.verificationDetails[metadataKey];
+                const statusElement = document.getElementById(`${inputId}-status`);
+                
+                if (statusElement && metadata) {
+                    statusElement.textContent = `Last verified by: ${metadata.split(' on ')[0]} on ${metadata.split(' on ')[1]}`;
+                } else if (statusElement) {
+                     statusElement.textContent = `Awaiting initial verification.`;
+                }
+            }
+        }
+
+        // Renders the interactive document list in the modal
+        function renderDocumentStatusesModal(data) {
+            const docStatuses = data.documentStatus || {};
+            const docList = document.getElementById('modal-document-list');
+            docList.innerHTML = ''; // Clear previous
+
+            const statusMap = {
+                'Verified': { color: 'bg-green-50 border-green-200', text: 'Status: Verified', textColor: 'text-green-600' },
+                'Not Uploaded': { color: 'bg-red-50 border-red-200', text: 'Status: Not Uploaded', textColor: 'text-red-500' },
+                'Review Pending': { color: 'bg-yellow-50 border-yellow-200', text: 'Status: Review Pending', textColor: 'text-yellow-600' }
+            };
+
+            const docTypes = [
+                { id: 'photoId', name: 'Government-Issued Photo ID' },
+                { id: 'transcript', name: 'High School Transcript' },
+                { id: 'studyPermit', name: 'Study Permit/Visa (If International)' },
+                { id: 'policeCheck', name: 'Police Check / Criminal Record Check' }
+            ];
+
+            docTypes.forEach(doc => {
+                const status = docStatuses[doc.id] || 'Not Uploaded';
+                const verifiedBy = docStatuses[`${doc.id}VerifiedBy`] || '';
+                const statusInfo = statusMap[status] || statusMap['Not Uploaded'];
+                
+                const metadata = status === 'Verified' && verifiedBy ? ` (by ${ADMIN_USER})` : '';
+
+                const docHtml = `
+                     <div class="flex justify-between items-center p-3 border rounded-lg ${statusInfo.color}" data-doc-id="${doc.id}">
+                        <div>
+                            <p class="font-medium text-gray-700">${doc.name}</p>
+                            <p class="text-xs font-bold mt-1 ${statusInfo.textColor}">${statusInfo.text} <span class="font-normal text-gray-500">${metadata}</span></p>
+                        </div>
+                        <div class="space-x-2">
+                            <button type="button" onclick="window.verifyDocumentModal('${doc.id}', 'Verified')" class="bg-green-500 text-white px-3 py-1 text-sm rounded-md hover:bg-green-600">Verify Document</button>
+                            <button type="button" onclick="window.verifyDocumentModal('${doc.id}', 'Not Uploaded')" class="bg-red-500 text-white px-3 py-1 text-sm rounded-md hover:bg-red-600">Reset Status</button>
+                        </div>
+                    </div>
+                `;
+                docList.insertAdjacentHTML('beforeend', docHtml);
+            });
+        }
+        
+        // Modal-specific wrapper for document verification
+        window.verifyDocumentModal = function(docId, newStatus) {
+            const studentId = getActiveStudentId();
+            const storedData = localStorage.getItem(`student_${studentId}`);
+            let data = storedData ? JSON.parse(storedData) : initializeStudentSpecificRecord(null, true);
+            
+            data.documentStatus[docId] = newStatus;
+            data.documentStatus[`${docId}VerifiedBy`] = `${ADMIN_ROLE} / ${ADMIN_USER} on ${new Date().toISOString().substring(0, 10)}`;
+            
+            try {
+                localStorage.setItem(`student_${studentId}`, JSON.stringify(data));
+                renderDocumentStatusesModal(data);
+                showMessage(`Document ${docId} status updated to: ${newStatus}.`, false);
+            } catch (error) {
+                showMessage("Error saving document status.", true);
+            }
+        }
+        
+        // Renders the OSAP/BJO/Self-Funded section based on selection
+        window.updateFundingSectionModal = function(selectedStatus, data = null) {
+            const container = document.getElementById('modal-conditional-funding-fields');
+            container.innerHTML = '';
+            
+            const studentId = getActiveStudentId();
+            const storedData = data || (studentId ? JSON.parse(localStorage.getItem(`student_${studentId}`)) : initializeStudentSpecificRecord(null, true));
+
+            let html = '';
+            
+            if (selectedStatus === 'OSAP') {
+                 html = `
+                    <div id="osap-fields" class="funding-section p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                        <h3 class="text-lg font-bold text-blue-700 mb-4 border-b border-blue-300 pb-2">OSAP Details (Loan & Grant Tracking)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">OSAP Application Status</label>
+                                <select id="modal-osapApplicationStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                                    <option>Required Docs Submitted</option>
+                                    <option>Assessment Complete</option>
+                                    <option>Funding Released</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">OSAP Total Assessed Funding ($)</label>
+                                <input type="number" id="modal-osapTotalAssessedFunding" value="${(storedData.osapDetails?.totalAssessedFunding || 0).toFixed(2)}" oninput="window.calculateTotalModal()" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-white font-semibold" placeholder="e.g., 9800.00">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">Remaining Balance (Self-Pay)</label>
+                                <p class="mt-2 text-lg font-semibold text-red-600" id="modal-osapRemainingBalance">$4,700.00 (Calculated)</p>
+                            </div>
+                        </div>
+                        <!-- Disbursement Table - Simplified for Modal Demo -->
+                        <h4 class="text-md font-semibold text-blue-600 mb-3">Disbursement Schedule</h4>
+                        <p class="text-sm">Installment 1: $5,880.00 (Paid) | Installment 2: $3,920.00 (Pending COE)</p>
+                    </div>`;
+                 // Update fields from loaded data
+                 setTimeout(() => { 
+                    document.getElementById('modal-osapApplicationStatus').value = storedData.osapDetails?.applicationStatus || 'Assessment Complete';
+                 }, 0);
+            } else if (selectedStatus === 'BJO') {
+                html = `
+                    <div id="bjo-fields" class="funding-section p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <h3 class="text-lg font-bold text-yellow-700 mb-4 border-b border-yellow-300 pb-2">Better Jobs Ontario (BJO) Details</h3>
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">BJO Application Status</label>
+                                <select id="modal-bjoApplicationStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                                    <option>Case Manager Assigned</option>
+                                    <option>Ministry Approved</option>
+                                    <option>Funding Confirmed</option>
+                                </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Total BJO Funding Amount ($)</label>
+                                <input type="number" id="modal-bjoTotalFunding" value="${(storedData.bjoDetails?.totalFunding || 0).toFixed(2)}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-white" placeholder="e.g., 12500.00">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">EO Case Manager Name & Contact</label>
+                                <input type="text" id="modal-bjoCaseManager" value="${storedData.bjoDetails?.caseManager || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" placeholder="Name and contact details">
+                            </div>
+                        </div>
+                    </div>`;
+                setTimeout(() => { 
+                    document.getElementById('modal-bjoApplicationStatus').value = storedData.bjoDetails?.applicationStatus || 'Ministry Approved';
+                 }, 0);
+            } else if (selectedStatus === 'Self-Funded') {
+                html = `
+                    <div id="self-funded-fields" class="funding-section p-6 bg-green-50 border border-green-200 rounded-lg">
+                        <h3 class="text-lg font-bold text-green-700 mb-4 border-b border-green-300 pb-2">Self-Funded Details</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Payment Plan Type</label>
+                                <select id="modal-sfPaymentPlanType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                                    <option>Full Payment</option>
+                                    <option>Monthly Plan (10 Installments)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="modal-sfNextPaymentDate" class="block text-sm font-medium text-gray-700">Next Payment Due Date</label>
+                                <input type="date" id="modal-sfNextPaymentDate" value="${storedData.selfFundedDetails?.nextPaymentDate || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">Notes on Payment</label>
+                                <textarea rows="2" id="modal-sfNotesOnPayment" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">${storedData.selfFundedDetails?.notes || ''}</textarea>
+                            </div>
+                        </div>
+                    </div>`;
+                setTimeout(() => { 
+                    document.getElementById('modal-sfPaymentPlanType').value = storedData.selfFundedDetails?.paymentPlanType || 'Monthly Plan (10 Installments)';
+                 }, 0);
+            }
+            
+            container.insertAdjacentHTML('beforeend', html);
+            window.updateFinancialProfileSummaryModal();
+        }
+
+        // --- CORE LOGIC: DATA HANDLING (localStorage) ---
+        
+        window.calculateTotalModal = function() {
+            const tuition = parseFloat(document.getElementById('modal-tuitionFee').value) || 0;
+            const book = parseFloat(document.getElementById('modal-bookFee').value) || 0;
+            const other = parseFloat(document.getElementById('modal-otherFee').value) || 0;
+            
+            const total = tuition + book + other;
+            document.getElementById('modal-totalProgramFees').textContent = `$${total.toFixed(2)}`;
+
+            // Also update the remaining balance within the OSAP section if visible
+            const osapInput = document.getElementById('modal-osapTotalAssessedFunding');
+            const osapBalanceElement = document.getElementById('modal-osapRemainingBalance');
+            if (osapInput && osapBalanceElement) {
+                const osapAssessed = parseFloat(osapInput.value) || 0;
+                const remaining = total - osapAssessed - initialPaymentAmount; 
+                osapBalanceElement.textContent = `$${remaining.toFixed(2)} (Calculated)`;
+                osapBalanceElement.className = remaining > 0 ? 'mt-2 text-lg font-semibold text-red-600' : 'mt-2 text-lg font-semibold text-green-600';
+            }
+
+            window.updateFinancialProfileSummaryModal();
+        }
+        
+        
+        function initializeStudentSpecificRecord(lead, silent = false) {
+            const initialLog = `Student Self-Report on ${new Date().toISOString().substring(0, 10)}`;
+            
+            const profile = lead || STUDENT_PROFILE_DATA_TEMPLATE;
+
+            const data = {
+                 studentId: lead ? lead.id : DEFAULT_STUDENT_ID,
+                 enrollmentStatus: lead ? (lead.enrollmentStatus || 'Lead') : 'Lead', 
+                 verificationDetails: {
+                    fullName: profile.name || profile.fullName,
+                    fullNameVerifiedBy: initialLog,
+                    email: profile.email || profile.email,
+                    emailVerifiedBy: initialLog,
+                    phone: profile.phone || profile.phone,
+                    phoneVerifiedBy: initialLog,
+                    program: profile.program || profile.program,
+                    programVerifiedBy: initialLog,
+                    startDate: profile.startDate || STUDENT_PROFILE_DATA_TEMPLATE.startDate,
+                    startDateVerifiedBy: initialLog,
+                    campus: profile.campus || STUDENT_PROFILE_DATA_TEMPLATE.campus,
+                    campusVerifiedBy: initialLog,
+                    branch: profile.branch || STUDENT_PROFILE_DATA_TEMPLATE.branch,
+                    branchVerifiedBy: initialLog,
+                    address: profile.address || STUDENT_PROFILE_DATA_TEMPLATE.address,
+                    addressVerifiedBy: initialLog,
+                 },
+                 feeBreakdown: { tuitionFee: 11500.00, bookFee: 1000.00, otherFee: 2000.00 },
+                 fundingStatus: 'OSAP',
+                 osapDetails: { totalAssessedFunding: 9800.00, applicationStatus: 'Assessment Complete', disbursements: DEFAULT_OSAP_DISBURSEMENTS },
+                 credentials: { idConfirmed: false, offerConfirmed: false, visaConfirmed: false, academicConfirmed: false },
+                 agentDetails: { agentId: lead ? lead.agent : 'AG-101', agentName: lead ? lead.agent : 'Jane Doe', commissionStatus: 'Pending Enrollment' },
+                 documentStatus: { photoId: 'Not Uploaded', transcript: 'Not Uploaded', studyPermit: 'Not Uploaded', policeCheck: 'Not Uploaded' }, 
+                 eSignatureName: profile.name || profile.fullName,
+                 dateSigned: new Date().toISOString().substring(0, 10),
+                 initialPayment: { amount: initialPaymentAmount, method: 'Credit/Debit Card', date: '' }
+            };
+            
+            // Save initial record to localStorage
+            if (!localStorage.getItem(`student_${data.studentId}`)) {
+                 localStorage.setItem(`student_${data.studentId}`, JSON.stringify(data));
+            }
+
+            return data;
+        }
+
+        // --- LEAD MANAGEMENT ---
+        
+        window.openNewLeadModal = function() {
+            document.getElementById('new-lead-modal').style.display = 'block';
+        }
+
+        window.closeNewLeadModal = function() {
+            document.getElementById('new-lead-modal').style.display = 'none';
+            document.getElementById('new-lead-form').reset();
+        }
+        
+        // Attaching lead submission handler
+        document.getElementById('new-lead-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            createNewLead();
+        });
+
+        function createNewLead() {
+            const name = document.getElementById('leadName').value;
+            const email = document.getElementById('leadEmail').value;
+            const phone = document.getElementById('leadPhone').value;
+            const branch = document.getElementById('leadBranch').value;
+            const program = document.getElementById('leadProgram').value;
+            const address = document.getElementById('leadAddress').value;
+            const agent = document.getElementById('leadAgentName').value || 'No Agent';
+            const source = document.getElementById('leadSource').value;
+            const leadId = `student_${Date.now()}`; // Unique ID
+
+            const newLead = {
+                id: leadId, name: name, program: program, status: "New Inquiries", enrollmentStatus: "Lead",
+                agent: agent, source: source, date: new Date().toISOString().substring(0, 10),
+                email: email, phone: phone, branch: branch, address: address
+            };
+
+            const storedLeads = localStorage.getItem(LEADS_STORAGE_KEY);
+            let leads = storedLeads ? JSON.parse(storedLeads) : [];
+
+            if (!leads.find(l => l.id === newLead.id)) {
+                leads.push(newLead);
+                localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(leads));
+                
+                initializeStudentSpecificRecord(newLead, true);
+            }
+
+            window.closeNewLeadModal();
+            window.renderKanbanPipeline();
+            showMessage(`New Lead: ${name} added to New Inquiries (Agent: ${agent}).`, false);
+        }
+        
+        function getLeads() {
+            const storedLeads = localStorage.getItem(LEADS_STORAGE_KEY);
+            if (storedLeads) {
+                return JSON.parse(storedLeads);
+            }
+            localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(INITIAL_LEADS));
+            
+            INITIAL_LEADS.forEach(lead => {
+                initializeStudentSpecificRecord(lead, true);
+            });
+            return INITIAL_LEADS;
+        }
+        
+        function getVerificationStatusBadge(studentId) {
+            const storedData = localStorage.getItem(`student_${studentId}`);
+            if (!storedData) return '';
+
+            const data = JSON.parse(storedData);
+            const docs = data.documentStatus || {};
+            
+            const requiredDocs = ['photoId', 'transcript'];
+            const allVerified = requiredDocs.every(doc => docs[doc] === 'Verified');
+
+            if (allVerified) {
+                return '<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-200 text-green-800 absolute top-2 right-2">Docs Verified</span>';
+            }
+            return '';
+        }
+        
+        window.openStudentDetailsModal = function(leadId) {
+            const leads = getLeads();
+            const lead = leads.find(l => l.id === leadId);
+
+            if (!lead) {
+                showMessage("Error: Lead not found.", true);
+                return;
+            }
+
+            document.getElementById('detail-card-name').textContent = lead.name;
+            document.getElementById('detail-card-status').textContent = lead.status;
+            document.getElementById('detail-card-program').textContent = lead.program;
+            document.getElementById('detail-card-source').textContent = lead.source;
+            document.getElementById('detail-card-agent').textContent = lead.agent;
+            document.getElementById('detail-card-date').textContent = lead.date;
+
+            document.getElementById('student-detail-modal').style.display = 'block';
+        }
+
+        window.closeStudentDetailsModal = function() {
+            document.getElementById('student-detail-modal').style.display = 'none';
+        }
+        
+        window.renderKanbanPipeline = function() {
+            const leads = getLeads();
+            const container = document.getElementById('pipeline-kanban');
+            container.innerHTML = '';
+            
+            const columns = {
+                "New Inquiries": { title: "New Inquiries", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
+                "Contacted & Interested": { title: "Contacted & Interested", bgColor: "bg-green-50", borderColor: "border-green-200" },
+                "Application Started": { title: "Application Started", bgColor: "bg-yellow-50", borderColor: "border-yellow-200" },
+                "Enrolled Students": { title: "Enrolled Students", bgColor: "bg-indigo-50", borderColor: "border-indigo-200" }
+            };
+
+            for (const key in columns) {
+                const columnData = columns[key];
+                const columnLeads = leads.filter(lead => lead.status === key);
+                
+                let cardsHtml = '';
+                columnLeads.forEach(lead => {
+                    const verificationBadge = getVerificationStatusBadge(lead.id);
+
+                    cardsHtml += `
+                        <div class="bg-white p-3 mb-3 rounded-lg border ${columnData.borderColor} shadow-sm relative">
+                            ${verificationBadge}
+                            <p class="font-bold">${lead.name}</p>
+                            <p class="text-xs text-gray-500">Program: ${lead.program}</p>
+                            <p class="text-xs text-indigo-500 mt-1">Agent: ${lead.agent || 'N/A'}</p>
+                            <div class="flex justify-between mt-2">
+                                <button onclick="window.openStudentDetailsModal('${lead.id}')" class="text-sm text-indigo-500 hover:text-indigo-700">☰ Details</button>
+                                <button onclick="window.setActiveStudent('${lead.id}')" class="text-xs bg-indigo-600 text-white px-2 py-1 rounded-md hover:bg-indigo-700">Start Enrollment</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                const columnHtml = `
+                    <div class="flex flex-col ${columnData.bgColor} p-4 rounded-lg">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">${columnData.title}</h3>
+                        ${cardsHtml}
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', columnHtml);
+            }
+        }
+
+
+        // --- REPORTING ROSTER VIEW (Unchanged) ---
+        
+        window.applyRosterFilters = function() {
+            const leads = getLeads();
+            const rosterBody = document.getElementById('reporting-roster-body');
+            rosterBody.innerHTML = '';
+            
+            const filterStatus = document.getElementById('filterStatus').value;
+            const filterProgram = document.getElementById('filterProgram').value;
+            const filterBranch = document.getElementById('filterBranch').value;
+            
+            const allStudents = leads.map(lead => {
+                const studentData = localStorage.getItem(`student_${lead.id}`);
+                const fullRecord = studentData ? JSON.parse(studentData) : initializeStudentSpecificRecord(lead, true);
+                
+                return {
+                    name: fullRecord.verificationDetails.fullName,
+                    program: fullRecord.verificationDetails.program,
+                    branch: fullRecord.verificationDetails.branch,
+                    enrollmentStatus: fullRecord.enrollmentStatus,
+                    id: fullRecord.studentId,
+                    lastAction: fullRecord.verificationDetails.fullNameVerifiedBy ? fullRecord.verificationDetails.fullNameVerifiedBy.split(' on ')[1] : lead.date,
+                };
+            });
+            
+            const filteredStudents = allStudents.filter(student => {
+                let statusMatch;
+                if (filterStatus === 'Enrolled/Graduated') {
+                    statusMatch = ['Enrolled', 'Graduated'].includes(student.enrollmentStatus);
+                } else {
+                    statusMatch = filterStatus === 'All' || student.enrollmentStatus === filterStatus;
+                }
+                
+                const programMatch = filterProgram === 'All' || student.program === filterProgram;
+                const branchMatch = filterBranch === 'All' || student.branch === filterBranch;
+                
+                return statusMatch && programMatch && branchMatch;
+            });
+            
+            if (filteredStudents.length === 0) {
+                 rosterBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">No student records match the current filters.</td></tr>`;
+                 return;
+            }
+            
+            const statusColorMap = {
+                'Enrolled': 'bg-green-100 text-green-800',
+                'Graduated': 'bg-indigo-100 text-indigo-800',
+                'Active': 'bg-yellow-100 text-yellow-800',
+                'Lead': 'bg-gray-100 text-gray-800'
+            };
+
+            filteredStudents.forEach(student => {
+                const statusClass = statusColorMap[student.enrollmentStatus] || 'bg-red-100 text-red-800';
+                const isReportable = ['Enrolled', 'Graduated'].includes(student.enrollmentStatus);
+                
+                const row = `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-3 py-2 font-medium text-gray-900">${student.name}</td>
+                        <td class="px-3 py-2">${student.program} / ${student.branch}</td>
+                        <td class="px-3 py-2">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                ${student.enrollmentStatus.toUpperCase()}
+                            </span>
+                        </td>
+                        <td class="px-3 py-2 text-gray-600">${student.lastAction}</td>
+                        <td class="px-3 py-2 space-x-2">
+                            <button onclick="window.setActiveStudent('${student.id}')" class="text-indigo-600 hover:text-indigo-800 text-sm">View Profile</button>
+                            <button onclick="alert('Simulating T2202 generation for ${student.name}')" class="text-purple-600 hover:text-purple-800 text-sm" ${!isReportable ? 'disabled' : ''}>T2202</button>
+                        </td>
+                    </tr>
+                `;
+                rosterBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+        
+        function renderReportingRoster() {
+            window.applyRosterFilters();
+        }
+
+
+        // --- CORE LOGIC: CALCULATIONS (Unchanged) ---
+        
+        window.calculateTotalModal = function() {
+            const tuition = parseFloat(document.getElementById('modal-tuitionFee').value) || 0;
+            const book = parseFloat(document.getElementById('modal-bookFee').value) || 0;
+            const other = parseFloat(document.getElementById('modal-otherFee').value) || 0;
+            
+            const total = tuition + book + other;
+            document.getElementById('modal-totalProgramFees').textContent = `$${total.toFixed(2)}`;
+
+            // Also update the remaining balance within the OSAP section if visible
+            const osapInput = document.getElementById('modal-osapTotalAssessedFunding');
+            const osapBalanceElement = document.getElementById('modal-osapRemainingBalance');
+            if (osapInput && osapBalanceElement) {
+                const osapAssessed = parseFloat(osapInput.value) || 0;
+                const remaining = total - osapAssessed - initialPaymentAmount; 
+                osapBalanceElement.textContent = `$${remaining.toFixed(2)} (Calculated)`;
+                osapBalanceElement.className = remaining > 0 ? 'mt-2 text-lg font-semibold text-red-600' : 'mt-2 text-lg font-semibold text-green-600';
+            }
+
+            window.updateFinancialProfileSummaryModal();
+        }
+
+        // Renders the verification metadata below the input fields in the modal
+        function renderVerificationMetadataModal(data) {
+            const fields = {
+                'modal-studentName': 'fullName',
+                'modal-studentEmail': 'email',
+                'modal-studentPhone': 'phone',
+                'modal-studentProgram': 'program',
+                'modal-studentBranch': 'branch',
+                'modal-studentAddress': 'address',
+            };
+
+            for (const inputId in fields) {
+                const metadataKey = `${fields[inputId]}VerifiedBy`;
+                const metadata = data.verificationDetails[metadataKey];
+                const statusElement = document.getElementById(`${inputId}-status`);
+                
+                if (statusElement && metadata) {
+                    statusElement.textContent = `Last verified by: ${metadata.split(' on ')[0]} on ${metadata.split(' on ')[1]}`;
+                } else if (statusElement) {
+                     statusElement.textContent = `Awaiting initial verification.`;
+                }
+            }
+        }
+
+        // Renders the interactive document list in the modal
+        function renderDocumentStatusesModal(data) {
+            const docStatuses = data.documentStatus || {};
+            const docList = document.getElementById('modal-document-list');
+            docList.innerHTML = ''; // Clear previous
+
+            const statusMap = {
+                'Verified': { color: 'bg-green-50 border-green-200', text: 'Status: Verified', textColor: 'text-green-600' },
+                'Not Uploaded': { color: 'bg-red-50 border-red-200', text: 'Status: Not Uploaded', textColor: 'text-red-500' },
+                'Review Pending': { color: 'bg-yellow-50 border-yellow-200', text: 'Status: Review Pending', textColor: 'text-yellow-600' }
+            };
+
+            const docTypes = [
+                { id: 'photoId', name: 'Government-Issued Photo ID' },
+                { id: 'transcript', name: 'High School Transcript' },
+                { id: 'studyPermit', name: 'Study Permit/Visa (If International)' },
+                { id: 'policeCheck', name: 'Police Check / Criminal Record Check' }
+            ];
+
+            docTypes.forEach(doc => {
+                const status = docStatuses[doc.id] || 'Not Uploaded';
+                const verifiedBy = docStatuses[`${doc.id}VerifiedBy`] || '';
+                const statusInfo = statusMap[status] || statusMap['Not Uploaded'];
+                
+                const metadata = status === 'Verified' && verifiedBy ? ` (by ${ADMIN_USER})` : '';
+
+                const docHtml = `
+                     <div class="flex justify-between items-center p-3 border rounded-lg ${statusInfo.color}" data-doc-id="${doc.id}">
+                        <div>
+                            <p class="font-medium text-gray-700">${doc.name}</p>
+                            <p class="text-xs font-bold mt-1 ${statusInfo.textColor}">${statusInfo.text} <span class="font-normal text-gray-500">${metadata}</span></p>
+                        </div>
+                        <div class="space-x-2">
+                            <button type="button" onclick="window.verifyDocumentModal('${doc.id}', 'Verified')" class="bg-green-500 text-white px-3 py-1 text-sm rounded-md hover:bg-green-600">Verify Document</button>
+                            <button type="button" onclick="window.verifyDocumentModal('${doc.id}', 'Not Uploaded')" class="bg-red-500 text-white px-3 py-1 text-sm rounded-md hover:bg-red-600">Reset Status</button>
+                        </div>
+                    </div>
+                `;
+                docList.insertAdjacentHTML('beforeend', docHtml);
+            });
+        }
+        
+        // Modal-specific wrapper for document verification
+        window.verifyDocumentModal = function(docId, newStatus) {
+            const studentId = getActiveStudentId();
+            const storedData = localStorage.getItem(`student_${studentId}`);
+            let data = storedData ? JSON.parse(storedData) : initializeStudentSpecificRecord(null, true);
+            
+            data.documentStatus[docId] = newStatus;
+            data.documentStatus[`${docId}VerifiedBy`] = `${ADMIN_ROLE} / ${ADMIN_USER} on ${new Date().toISOString().substring(0, 10)}`;
+            
+            try {
+                localStorage.setItem(`student_${studentId}`, JSON.stringify(data));
+                renderDocumentStatusesModal(data);
+                showMessage(`Document ${docId} status updated to: ${newStatus}.`, false);
+            } catch (error) {
+                showMessage("Error saving document status.", true);
+            }
+        }
+        
+        // Renders the OSAP/BJO/Self-Funded section based on selection
+        window.updateFundingSectionModal = function(selectedStatus, data = null) {
+            const container = document.getElementById('modal-conditional-funding-fields');
+            container.innerHTML = '';
+            
+            const studentId = getActiveStudentId();
+            const storedData = data || (studentId ? JSON.parse(localStorage.getItem(`student_${studentId}`)) : initializeStudentSpecificRecord(null, true));
+
+            let html = '';
+            
+            if (selectedStatus === 'OSAP') {
+                 html = `
+                    <div id="osap-fields" class="funding-section p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                        <h3 class="text-lg font-bold text-blue-700 mb-4 border-b border-blue-300 pb-2">OSAP Details (Loan & Grant Tracking)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">OSAP Application Status</label>
+                                <select id="modal-osapApplicationStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                                    <option>Required Docs Submitted</option>
+                                    <option>Assessment Complete</option>
+                                    <option>Funding Released</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">OSAP Total Assessed Funding ($)</label>
+                                <input type="number" id="modal-osapTotalAssessedFunding" value="${(storedData.osapDetails?.totalAssessedFunding || 0).toFixed(2)}" oninput="window.calculateTotalModal()" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-white font-semibold" placeholder="e.g., 9800.00">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">Remaining Balance (Self-Pay)</label>
+                                <p class="mt-2 text-lg font-semibold text-red-600" id="modal-osapRemainingBalance">$4,700.00 (Calculated)</p>
+                            </div>
+                        </div>
+                        <!-- Disbursement Table - Simplified for Modal Demo -->
+                        <h4 class="text-md font-semibold text-blue-600 mb-3">Disbursement Schedule</h4>
+                        <p class="text-sm">Installment 1: $5,880.00 (Paid) | Installment 2: $3,920.00 (Pending COE)</p>
+                    </div>`;
+                 // Update fields from loaded data
+                 setTimeout(() => { 
+                    document.getElementById('modal-osapApplicationStatus').value = storedData.osapDetails?.applicationStatus || 'Assessment Complete';
+                 }, 0);
+            } else if (selectedStatus === 'BJO') {
+                html = `
+                    <div id="bjo-fields" class="funding-section p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <h3 class="text-lg font-bold text-yellow-700 mb-4 border-b border-yellow-300 pb-2">Better Jobs Ontario (BJO) Details</h3>
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">BJO Application Status</label>
+                                <select id="modal-bjoApplicationStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                                    <option>Case Manager Assigned</option>
+                                    <option>Ministry Approved</option>
+                                    <option>Funding Confirmed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Total BJO Funding Amount ($)</label>
+                                <input type="number" id="modal-bjoTotalFunding" value="${(storedData.bjoDetails?.totalFunding || 0).toFixed(2)}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-white" placeholder="e.g., 12500.00">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">EO Case Manager Name & Contact</label>
+                                <input type="text" id="modal-bjoCaseManager" value="${storedData.bjoDetails?.caseManager || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" placeholder="Name and contact details">
+                            </div>
+                        </div>
+                    </div>`;
+                setTimeout(() => { 
+                    document.getElementById('modal-bjoApplicationStatus').value = storedData.bjoDetails?.applicationStatus || 'Ministry Approved';
+                 }, 0);
+            } else if (selectedStatus === 'Self-Funded') {
+                html = `
+                    <div id="self-funded-fields" class="funding-section p-6 bg-green-50 border border-green-200 rounded-lg">
+                        <h3 class="text-lg font-bold text-green-700 mb-4 border-b border-green-300 pb-2">Self-Funded Details</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Payment Plan Type</label>
+                                <select id="modal-sfPaymentPlanType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                                    <option>Full Payment</option>
+                                    <option>Monthly Plan (10 Installments)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="modal-sfNextPaymentDate" class="block text-sm font-medium text-gray-700">Next Payment Due Date</label>
+                                <input type="date" id="modal-sfNextPaymentDate" value="${storedData.selfFundedDetails?.nextPaymentDate || ''}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700">Notes on Payment</label>
+                                <textarea rows="2" id="modal-sfNotesOnPayment" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">${storedData.selfFundedDetails?.notes || ''}</textarea>
+                            </div>
+                        </div>
+                    </div>`;
+                setTimeout(() => { 
+                    document.getElementById('modal-sfPaymentPlanType').value = storedData.selfFundedDetails?.paymentPlanType || 'Monthly Plan (10 Installments)';
+                 }, 0);
+            }
+            
+            container.insertAdjacentHTML('beforeend', html);
+            window.updateFinancialProfileSummaryModal();
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             // Ensure initial dummy record exists for first load
@@ -1838,7 +1951,7 @@
             }
 
             // Set default view to Pipeline and render
-            showView('pipeline'); 
+            window.showView('pipeline'); 
         });
     </script>
 </body>
